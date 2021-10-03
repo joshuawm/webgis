@@ -271,7 +271,8 @@ export default {
 }
 .finder {
   border-radius: 12px;
-  background-color: beige;
+  backdrop-filter: blur(5px);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   text-align: left;
   margin: 8px 3px;
 }
@@ -325,13 +326,14 @@ button {
 }
 .attrList {
   margin: 2px 10px;
-  background-color: white;
-  border: 1px solid white;
+  background-color: transparent;
+  border: 1px solid black;
   border-radius: 7px;
   text-align: center;
+
 }
 .attrList:hover {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.8);
   box-shadow: 5px 5px 2px 1px rgba(0, 0, 0, 0.2);
   border: 1px solid black;
   border-radius: 12px;

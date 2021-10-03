@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <el-autocomplete v-model="queryValue" :fetch-suggestions="globalSearch" placeholder="找不到? 搜索试试" @select="changeValue">
+  <div class="input">
+    <el-autocomplete popper-class="my-autocomplete" class="inputs" v-model="queryValue" :fetch-suggestions="globalSearch" placeholder="找不到? 搜索试试" @select="changeValue">
     </el-autocomplete>
 <!--<el-input v-model="queryValue" multiple size="medium"-->
 <!--              filterable remote :remote-method="globalSearch"-->
@@ -74,5 +74,35 @@ export default {
 }
 </script>
 <style scoped>
-
+/deep/ .my-kqoption {
+  width: 20px !important;
+}
+/deep/ .el-input{
+  background: transparent;
+  width: 80%;
+  font-size: 10px;
+}
+/deep/ input.el-input__inner{
+  background-color: transparent;
+  background-image: none;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: black;
+  display: inline-block;
+  font-size: inherit;
+  height: inherit;
+  line-height: 100%;
+  outline: 0;
+  padding: 0 0;
+  margin-left: 4px;
+  -webkit-transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  width: 100%;
+}
+.my-autocomplete{
+  background: transparent;
+  color: black;
+}
 </style>

@@ -4,7 +4,7 @@ import VueRouter from "vue-router";
 import login from "../view/login";
 import register from "../view/register";
 import home from "../view/home";
-import timeline from "../components/son_components/timeline.vue";
+import wode from "../components/son_components/wodetest"
 Vue.use(VueRouter);
 
 export default new VueRouter({
@@ -33,8 +33,8 @@ export default new VueRouter({
       }
     },
     {
-      path: "/timeline",
-      component: timeline
+      path: "/wode",
+      component: wode
     }
   ],
   mode: "history"

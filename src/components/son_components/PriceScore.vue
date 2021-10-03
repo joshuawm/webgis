@@ -48,6 +48,7 @@ export default {
         center: latLng,
         speed: 2
       });
+
     });
   },
   methods: {
@@ -204,10 +205,14 @@ export default {
   width: 100%;
 }
 .charts {
-  background-color: white;
+
+  border-radius: 30px;
+  border: 1px solid white;
+  background-color: rgba(255,255,255,0.6);
+  /*background: transparent;*/
   position: absolute;
-  left: 60%;
-  top: 10%;
+  right: 5%;
+  top: 3%;
   /*width: 35.6%;*/
   /*height: 50%;*/
   box-shadow: rgba(0, 0, 0, 0.24) 0px 6px 12px;

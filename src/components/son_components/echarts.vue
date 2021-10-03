@@ -1,7 +1,6 @@
 <template>
 <div id="echarts">
-  <div class="globalinput"><global-input /></div>
-
+  <div id="allDisplay">
   <!-- <div class="littleButton" v-for="op in options"><button @click="buttonProcess(op)">{{op.name}}</button></div> -->
   <p style="font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;font-size: 20px;text-align: center;margin: 2px 4px;">{{displayTitle}}</p>
   <div class="littleButton">
@@ -17,6 +16,7 @@
     <!-- <button v-if="ButtonActive.style" @click="buttonProcess('单个')">单个</button> -->
     <button v-if="ButtonActive.style" ref="zonghe"  @click="buttonProcess('综合')">价格评分综合分析</button>
     </div>
+
   </div>
   <div>
   </div>
@@ -24,10 +24,13 @@
   <div>
     <div class="poiButtons">
   <div style="margin: 1px 2px" v-for="item in POIname" :key="item.name" class="buttonDisplay">
-    <span style="margin: 5px 5px;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;font-weight: bold;">&nbsp;{{item.name}}</span><button :disabled="id.length===1?true:false" class="el-icon-circle-close deletebutton" @click="deletePOI(item.id)"></button>
-  </div></div></div>
+    <span style="margin: 5px 5px;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;font-weight: normal;font-size: 12px;">&nbsp;{{item.name}}</span><button :disabled="id.length===1?true:false" class="el-icon-circle-close deletebutton" @click="deletePOI(item.id)"></button>
+  </div>
+      <div class="buttonDisplay searchicon"  @click="searchbarActive=!searchbarActive" ><span style="margin: 5px 1px;font-size: 12px;" class="el-icon-search"></span></div>
+      <div v-if="searchbarActive" class="buttonDisplay" > <div class="globalinput"><global-input /></div></div>
+    </div></div>
   <div class="chartsdisplay"><div id="scorePrice"></div></div>
-
+  </div>
 </div>
 </template>
 
@@ -56,6 +59,7 @@ export default {
       id:[12],
       globalData:undefined,
       displayTitle:"",
+      searchbarActive:false,
       POIname:[],
       op:{
         dataType:"Caterings",
@@ -205,8 +209,8 @@ export default {
         },
         series: []
       },
-      clickedColor:"#00ffff",
-      unclickColor:"#ffffff"
+      clickedColor:"#add8e6",
+      unclickColor:"transparent"
     }
   },
   components:{
@@ -214,7 +218,13 @@ export default {
   },
   async mounted() {
     this.Chart =echarts.init(document.getElementById("scorePrice"))
-    await this.getData("http://121.5.235.15/api/v2/zhouyou/_table/Caterings?limit=50&order=catering_avg_price%20DESC","global")
+    // await this.getData("http://121.5.235.15/api/v2/zhouyou/_table/Caterings?limit=50&order=catering_avg_price%20DESC","global")
+    let ress = await axios.get("http://121.5.235.15/api/v2/zhouyou/_table/attractions?fields=attraction_id&limit=3&order=attraction_ratting%20DESC",{
+      params: {
+        api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
+      }
+    })
+    this.id=await ress.data.resource.map(x=>x.attraction_id)
     await this.refreshMydata()
 
     this.$EventBus.$on("selectChange",async (data)=>{
@@ -270,7 +280,7 @@ export default {
             }
           }else if(this.op.style==="stack"){
             console.log("barstack")
-            await this.barStack(title)
+            await this.barStack(title,this.basedata)
           }
     },
     async buttonProcess(ops){
@@ -353,13 +363,13 @@ export default {
       }
       if(type==="global"){
         this.globalData=temp
+        console.log(this.globalData)
       }else {
         this.basedata=temp
       }
     },
     async loadLayerAOI(type,name,data){
       this.AOIoption.xAxis.data=data.legend
-
       // this.AOIoption.title.text=name
       let seriesA
       if(type==="price"){
@@ -419,9 +429,9 @@ export default {
         // this.AOIoption.series.push(seriesA)
       this.Chart.setOption(this.AOIoption,true)
     },
-    async barStack(name) {
-      let pricedata= this.basedata.price.map(x=>x.value)
-      let scoredata = this.basedata.score.map(x=>x.value)
+    async barStack(name,data) {
+      let pricedata= data.price.map(x=>x.value)
+      let scoredata = data.score.map(x=>x.value)
       scoredata=scoredata.map(x=>Math.round(x/5*50))
       let maxPrice=Math.max(...pricedata)
       pricedata=pricedata.map(x=>Math.round((maxPrice-x)/maxPrice*50))
@@ -430,7 +440,7 @@ export default {
       for (let index =0;index <pricedata.length;index++){
         let sum = pricedata[index]+scoredata[index]
         let temp={
-          name:this.basedata.legend[index],
+          name:data.legend[index],
           sum:sum,
           price:pricedata[index],
           score:scoredata[index]
@@ -544,21 +554,25 @@ export default {
             this.$refs.jingdian.style.backgroundColor=this.unclickColor
           }
 
-          if(this.op.type===this.dataStore[this.op.dataType].score){
-            this.$refs.pingfen.style.backgroundColor=this.clickedColor
-            this.$refs.jiage.style.backgroundColor=this.unclickColor
-            this.$refs.zonghe.style.backgroundColor=this.unclickColor
-          }else if(this.op.type===this.dataStore[this.op.dataType].price){
-            this.$refs.jiage.style.backgroundColor=this.clickedColor
-            this.$refs.zonghe.style.backgroundColor=this.unclickColor
-            this.$refs.pingfen.style.backgroundColor=this.unclickColor
-          }else if(this.op.style==="stack") {
+
+          if(this.op.style==="stack"){
+            console.log("stack了")
             this.$refs.zonghe.style.backgroundColor=this.clickedColor
             this.$refs.jiage.style.backgroundColor=this.unclickColor
             this.$refs.pingfen.style.backgroundColor=this.unclickColor
+          }else if(this.op.style==="AOI"){
+          if(this.op.type===this.dataStore[this.op.dataType].price){
+            console.log("pprice了")
+            this.$refs.jiage.style.backgroundColor=this.clickedColor
+            this.$refs.zonghe.style.backgroundColor=this.unclickColor
+            this.$refs.pingfen.style.backgroundColor=this.unclickColor
+          }else if(this.op.type===this.dataStore[this.op.dataType].score) {
+            console.log("score了")
+            this.$refs.pingfen.style.backgroundColor=this.clickedColor
+            this.$refs.jiage.style.backgroundColor=this.unclickColor
+            this.$refs.zonghe.style.backgroundColor=this.unclickColor
           }
-      }
-
+      }}
     },
   computed:{
 }
@@ -569,16 +583,15 @@ export default {
 p{
   text-align: center;
 }
-#echarts{
-  /*width: 400px;*/
-  /*height: 400px;*/
-  /*background-color: beige;*/
-}
+
 #scorePrice{
   width: 600px;
+  /*min-height: 50%;*/
   height: 400px;
-  background-color: white;
-  margin: 3px 9px;
+  /*background-color: rgba(255,255,255,0.4);*/
+  margin: 12px 9px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 12px;
 }
 button{
   margin: 3px 3px;
@@ -586,16 +599,23 @@ button{
   border-radius: 40px;
 }
 .deletebutton{
-  background-color: white;
-  border-radius: 6px;
-  border: white;
+  background:transparent;
+  /*border-radius: 6px;*/
+  border: #f3f3dd;
 }
 .buttonDisplay{
   border-radius: 12px;
-  background-color: white;
+  background:transparent;
   border: 1px solid black;
-  width: fit-content;
+  /*width: fit-content;*/
+  min-width: 8px;
   font-size: 6px;
+}
+.searchicon{
+  width: 14px;
+  margin-left: 4px;
+  text-align: center;
+
 }
 .chartsdisplay{
   border-radius: 12px;
@@ -604,9 +624,9 @@ button{
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
 }
 .globalinput{
-  width: 200px;
-  margin-top: 3px;
-  margin-left: 400px;
+  width: 150px;
+  height: 10px;
+
 }
 .littleButton{
 display: flex;
@@ -614,8 +634,9 @@ justify-content: flex-start;
 }
 .littleButtonZone{
   border-radius: 20px;
-  border: 1px solid lightsteelblue;
-  margin: 2px 6px;
+  border: 1px solid black;
+  padding: 3px;
+  margin: 8px 12px;
 }
 .poiButtons{
   display: flex;
