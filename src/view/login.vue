@@ -118,7 +118,7 @@ export default {
 }
 
 #body-all {
-  /*background:url("../assets/bg01.jpg");*/
+  background:url("../assets/bg.jpg");
   width: 100%;
   height: 100vh;
   position: fixed;

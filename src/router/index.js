@@ -5,7 +5,6 @@ import login from "../view/login";
 import register from "../view/register";
 import home from "../view/home";
 import timeline from "../components/son_components/timeline.vue";
-import PriceScore from "../components/son_components/PriceScore";
 Vue.use(VueRouter);
 
 export default new VueRouter({
@@ -36,9 +35,6 @@ export default new VueRouter({
     {
       path: "/timeline",
       component: timeline
-    },{
-      path:"/price",
-      component:PriceScore
     }
   ],
   mode: "history"

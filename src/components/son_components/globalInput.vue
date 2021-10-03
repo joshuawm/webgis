@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-autocomplete v-model="queryValue" :fetch-suggestions="globalSearch" placeholder="尝试在这边搜索" @select="changeValue">
+    <el-autocomplete v-model="queryValue" :fetch-suggestions="globalSearch" placeholder="找不到? 搜索试试" @select="changeValue">
     </el-autocomplete>
 <!--<el-input v-model="queryValue" multiple size="medium"-->
 <!--              filterable remote :remote-method="globalSearch"-->

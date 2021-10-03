@@ -18,13 +18,14 @@
     <div class="headers" id="sys-search" >
       <el-button class="el-buttons" plain icon="el-icon-search" @click="search_attr"></el-button>
     </div>
-    <div class="headers" id="sys-download" @click="screen_download">
+    <div class="headers" id="sys-download" v-if="$store.state.main_show === '1'" @click="screen_download">
       <el-button class="el-buttons" plain icon="el-icon-download"></el-button>
     </div>
     <div class="headers" id="sys-user" style="margin-left: 200px;margin-right: 40px">
       <el-dropdown class="el-buttons" placement="bottom" trigger="click">
         <el-button type="primary" icon="el-icon-user"></el-button>
         <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item :disabled="true">{{$store.state.username}}</el-dropdown-item>
           <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -57,22 +58,29 @@ export default {
       this.$store.commit('logout');
       this.$router.push('./')
     },
-    init_search_result:function (){
+    init_search_result:async function (){
       let that = this;
       that.showPrise = true;
+      that.hots=[]
       let url = 'http://121.5.235.15/api/v2/zhouyou/_table/attraction_hot_top?fields=hot_name';
-      axios
-        .get(url,that.params)
-        .then(function (resp){
-          that.hots = [];
-          for (let i in resp.data.resource) {
-            that.hots.push({name:resp.data.resource[i].hot_name})
-          }
-        })
+      let res = await axios.get(url,that.params)
+      let string=""
+      for(let ii =0;ii<res.data.resource.length;ii++){
+        if(ii===0){
+            string=`(attraction_name=${res.data.resource[ii].hot_name})`
+        }else{
+            string=`${string} OR (attraction_name=${res.data.resource[ii].hot_name})`
+        }
+      }
+      let resp =await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/attractions?fields=*&filter=${string}`,this.params)
+      console.log(resp)
+      for (let i in resp.data.resource) {
+          that.hots.push({name:resp.data.resource[i].attraction_name,id:resp.data.resource[i].attraction_id,lat:resp.data.resource[i].attraction_lat,lng:resp.data.resource[i].attraction_lon})
+      }
     },
     get_like_result(){
       let that = this;
-
+      this.showPrise=false
       //my Edition
       //搜索字段范围
       let searchList={
@@ -133,6 +141,7 @@ export default {
         lng:this.hots[ind].lng,
         id:this.hots[ind].id
       }
+      console.log("tiaozhuanel")
       this.$EventBus.$emit("marker",info)
 
     },

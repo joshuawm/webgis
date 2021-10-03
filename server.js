@@ -30,7 +30,6 @@ app.post("/images", upload.array("file", 20), (req, res, next) => {
 app.get("/getimage", (req, res) => {
   if (req.query.image) {
     let yu = `E:\\vsCode\\myvue\\${req.query.image}`;
-    console.log(yu);
     res.sendFile(yu);
   }
 });

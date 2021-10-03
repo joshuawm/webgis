@@ -1,47 +1,37 @@
 <template>
 <div id="echarts">
-  <global-input></global-input>
+  <div class="globalinput"><global-input /></div>
+
   <!-- <div class="littleButton" v-for="op in options"><button @click="buttonProcess(op)">{{op.name}}</button></div> -->
+  <p style="font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;font-size: 20px;text-align: center;margin: 2px 4px;">{{displayTitle}}</p>
   <div class="littleButton">
-    <button v-if="ButtonActive.dataType" @click="buttonProcess('景点')">景点</button>
-    <button v-if="ButtonActive.dataType" @click="buttonProcess('美食')">美食</button>
-    <br>
-    <button v-if="ButtonActive.type" @click="buttonProcess('价格')">价格</button>
-    <button v-if="ButtonActive.type" @click="buttonProcess('评分')">评分</button>
+    <div class="littleButtonZone">
+<!--    <span style="margin: 2px 4px">区域</span>-->
+    <button v-if="ButtonActive.dataType" ref="jingdian" @click="buttonProcess('景点')">景点</button>
+    <button v-if="ButtonActive.dataType" ref="meishi"  @click="buttonProcess('美食')">景点附近美食</button>
+    </div>
+    <div class="littleButtonZone">
+<!--      <span style="margin: 2px 4px">类型</span>-->
+    <button v-if="ButtonActive.type"  ref="jiage"  @click="buttonProcess('价格')">价格分析</button>
+    <button v-if="ButtonActive.type" ref="pingfen"  @click="buttonProcess('评分')">评分分析</button>
     <!-- <button v-if="ButtonActive.style" @click="buttonProcess('单个')">单个</button> -->
-    <button v-if="ButtonActive.style" @click="buttonProcess('综合')">价格评分综合分析</button>
+    <button v-if="ButtonActive.style" ref="zonghe"  @click="buttonProcess('综合')">价格评分综合分析</button>
+    </div>
   </div>
   <div>
   </div>
-  <p>{{displayTitle}}</p>
   <!--    删除按钮-->
-  <div style="display: flex;justify-content: flex-start;">
-  <div v-for="item in POIname" class="buttonDisplay">
-    <span style="margin-bottom: 5px;">&nbsp;{{item.name}}</span><button :disabled="id.length===1?true:false" class="el-icon-circle-close deletebutton" @click="deletePOI(item.id)"></button>
-  </div></div>
+  <div>
+    <div class="poiButtons">
+  <div style="margin: 1px 2px" v-for="item in POIname" :key="item.name" class="buttonDisplay">
+    <span style="margin: 5px 5px;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;font-weight: bold;">&nbsp;{{item.name}}</span><button :disabled="id.length===1?true:false" class="el-icon-circle-close deletebutton" @click="deletePOI(item.id)"></button>
+  </div></div></div>
+  <div class="chartsdisplay"><div id="scorePrice"></div></div>
 
-  <div id="scorePrice"></div>
 </div>
 </template>
 
 <script>
-let dataStore={
-  "Caterings":{
-    "score":"catering_score",
-    "price":"catering_avg_price",
-    "name":"catering_name"
-  },
-  "Hotels":{
-    "score":"hotel_score",
-    "price":"hotel_avg_price",
-    "name":"hotel_name"
-  },
-  "Attractions":{
-    "price":"attraction_price",
-    "score":"attraction_ratting",
-    "name":"attraction_name"
-  }
-}
 import GlobalInput from "./globalInput"
 import * as echarts from "echarts"
 import axios from "axios"
@@ -77,6 +67,23 @@ export default {
         dataType:true, // 美食 酒店
         type:true,  // 评分 价格
         style:true // 单个 综合
+      },
+      dataStore:{
+        "Caterings":{
+          "score":"catering_score",
+          "price":"catering_avg_price",
+          "name":"catering_name"
+        },
+        "Hotels":{
+          "score":"hotel_score",
+          "price":"hotel_avg_price",
+          "name":"hotel_name"
+        },
+        "Attractions":{
+          "price":"attraction_price",
+          "score":"attraction_ratting",
+          "name":"attraction_name"
+        }
       },
       options: [
         {
@@ -197,7 +204,9 @@ export default {
           data: null
         },
         series: []
-      }
+      },
+      clickedColor:"#00ffff",
+      unclickColor:"#ffffff"
     }
   },
   components:{
@@ -227,6 +236,8 @@ export default {
     this.$EventBus.$on("delete",async (data)=>{
       await this.deletePOI(data)
     })
+
+    this.whatsmystyle()
   },
   methods:{
     async refreshMydata(){
@@ -240,8 +251,8 @@ export default {
             }
           }
           let temp=[]
-          for (let key in dataStore[this.op.dataType]){
-            temp.push(dataStore[this.op.dataType][key])
+          for (let key in this.dataStore[this.op.dataType]){
+            temp.push(this.dataStore[this.op.dataType][key])
           }
           temp=temp.join(",")
           requestsURL=`http://121.5.235.15/api/v2/zhouyou/_table/${this.op.dataType}?fields=${temp}&filter=${attrId}`
@@ -284,17 +295,17 @@ export default {
           this.op.dataType="Hotels"
           break;
         case "评分":
-          if(this.op.type!==dataStore[this.op.dataType].score){
+          if(this.op.type!==this.dataStore[this.op.dataType].score){
             this.op.refresh=true
           }
-          this.op.type=dataStore[this.op.dataType].score
+          this.op.type=this.dataStore[this.op.dataType].score
           this.op.style="AOI"
           break;
         case "价格":
-          if(this.op.type!==dataStore[this.op.dataType].price){
+          if(this.op.type!==this.dataStore[this.op.dataType].price){
             this.op.refresh=true
           }
-          this.op.type=dataStore[this.op.dataType].price
+          this.op.type=this.dataStore[this.op.dataType].price
           this.op.style="AOI"
         case "单个":
           if(this.op.style!=="AOI"){
@@ -312,6 +323,7 @@ export default {
       console.log(this.op)
       if(this.op.refresh){
         this.refreshMydata()
+        this.whatsmystyle()
       }
     },
     async getData(url,type){
@@ -324,19 +336,19 @@ export default {
       let temp={}
       if(data.length>0) {
         temp.legend =await data.map((x) => {
-          return x[dataStore[this.op.dataType].name]
+          return x[this.dataStore[this.op.dataType].name]
         })
         temp.price = await data.map((x) => {
-          if (x[dataStore[this.op.dataType].price]=== 0) {
-            x[dataStore[this.op.dataType].price] = 25
+          if (x[this.dataStore[this.op.dataType].price]=== 0) {
+            x[this.dataStore[this.op.dataType].price] = 25
           }
-          return {name:x[dataStore[this.op.dataType].name], value: x[dataStore[this.op.dataType].price]}
+          return {name:x[this.dataStore[this.op.dataType].name], value: x[this.dataStore[this.op.dataType].price]}
         })
         temp.score = await data.map((x) => {
-          if (x[dataStore[this.op.dataType].score] === null) {
-            x[dataStore[this.op.dataType].score] = 3
+          if (x[this.dataStore[this.op.dataType].score] === null) {
+            x[this.dataStore[this.op.dataType].score] = 3
           }
-          return {name: x[dataStore[this.op.dataType].name], value: x[dataStore[this.op.dataType].score]}
+          return {name: x[this.dataStore[this.op.dataType].name], value: x[this.dataStore[this.op.dataType].score]}
         })
       }
       if(type==="global"){
@@ -485,7 +497,7 @@ export default {
       }}else{
         desc="无数据"
       }
-      desc=`${desc}对比图`
+      desc=`${desc}分析`
       return desc
 
 
@@ -522,9 +534,33 @@ export default {
         console.log("传参不是数字 nothing happens")
       }
 
-    }
-},
-computed:{
+    },
+    whatsmystyle(){
+          if(this.op.dataType==="Attractions"){
+            this.$refs.jingdian.style.backgroundColor=this.clickedColor
+            this.$refs.meishi.style.backgroundColor=this.unclickColor
+          }else if(this.op.dataType==="Caterings"){
+            this.$refs.meishi.style.backgroundColor=this.clickedColor
+            this.$refs.jingdian.style.backgroundColor=this.unclickColor
+          }
+
+          if(this.op.type===this.dataStore[this.op.dataType].score){
+            this.$refs.pingfen.style.backgroundColor=this.clickedColor
+            this.$refs.jiage.style.backgroundColor=this.unclickColor
+            this.$refs.zonghe.style.backgroundColor=this.unclickColor
+          }else if(this.op.type===this.dataStore[this.op.dataType].price){
+            this.$refs.jiage.style.backgroundColor=this.clickedColor
+            this.$refs.zonghe.style.backgroundColor=this.unclickColor
+            this.$refs.pingfen.style.backgroundColor=this.unclickColor
+          }else if(this.op.style==="stack") {
+            this.$refs.zonghe.style.backgroundColor=this.clickedColor
+            this.$refs.jiage.style.backgroundColor=this.unclickColor
+            this.$refs.pingfen.style.backgroundColor=this.unclickColor
+          }
+      }
+
+    },
+  computed:{
 }
 }
 </script>
@@ -541,17 +577,13 @@ p{
 #scorePrice{
   width: 600px;
   height: 400px;
-  background-color: beige;
+  background-color: white;
+  margin: 3px 9px;
 }
 button{
   margin: 3px 3px;
   background-color: white;
-  border-radius: 13px;
-}
-#barStack{
-  width: 600px;
-  height: 400px;
-  background-color: beige;
+  border-radius: 40px;
 }
 .deletebutton{
   background-color: white;
@@ -564,5 +596,29 @@ button{
   border: 1px solid black;
   width: fit-content;
   font-size: 6px;
+}
+.chartsdisplay{
+  border-radius: 12px;
+  border: 1px solid lightsteelblue;
+  margin: 5px 6px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+}
+.globalinput{
+  width: 200px;
+  margin-top: 3px;
+  margin-left: 400px;
+}
+.littleButton{
+display: flex;
+justify-content: flex-start;
+}
+.littleButtonZone{
+  border-radius: 20px;
+  border: 1px solid lightsteelblue;
+  margin: 2px 6px;
+}
+.poiButtons{
+  display: flex;
+  flex-wrap: wrap;
 }
 </style>

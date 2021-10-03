@@ -16,6 +16,7 @@
                   default-active="activeIndex"
                   class="el-menu-vertical-demo"
                   @select="selectchoice"
+
                 >
                   <el-submenu index="1">
                     <template slot="title">
@@ -47,6 +48,13 @@
                         <el-menu-item index="1-2-1">1km范围</el-menu-item>
                         <el-menu-item index="1-2-2">5km范围</el-menu-item>
                         <el-menu-item index="1-2-3">10km范围</el-menu-item>
+                          <el-menu-item  index="1-2-4" >
+                            自定义范围
+                          </el-menu-item>
+                        <div v-if="theIndex==='1-2-4'">
+                          <input  placeholder="请输入范围" v-model="bufferradius_km" class="inputradius"  @keyup.enter="checkinfo" >
+                          <span class="km_text">km</span>
+                        </div>
                       </el-submenu>
                     </el-menu-item-group>
                     <el-menu-item-group>
@@ -59,8 +67,9 @@
                       <span>景点分析</span>
                     </template>
                     <el-menu-item-group>
-                      <el-menu-item index="2-1-1">价格分析</el-menu-item>
-                      <el-menu-item index="2-1-2">评分分析</el-menu-item>
+                      <el-menu-item index="2-1-0">距离分析</el-menu-item>
+                      <el-menu-item index="2-1-1">价格评分分析</el-menu-item>
+                      <!-- <el-menu-item index="2-1-2">评分分析</el-menu-item> -->
                       <el-menu-item index="2-1-3">人流量分析</el-menu-item>
                     </el-menu-item-group>
                   </el-submenu>
@@ -77,6 +86,11 @@
         <div class="custome">
           <similar v-if="theIndex === '3'"></similar>
           <traffic v-if="theIndex === '2-1-3'"></traffic>
+          <distanceanlysis v-if="theIndex === '2-1-0'"></distanceanlysis>
+          <select-by-distance
+            v-if="theIndex === '1-2'"
+            :bufferradius="1"
+          ></select-by-distance>
           <select-by-distance
             v-if="theIndex === '1-2-1'"
             :bufferradius="1"
@@ -89,8 +103,13 @@
             v-if="theIndex === '1-2-3'"
             :bufferradius="10"
           ></select-by-distance>
+          <select-by-distance
+            v-if="theIndex === '1-2-4'"
+            :bufferradius="radius_distance===undefined||null?1:radius_distance"
+          ></select-by-distance>
           <select-by-type v-if="typeSelectActive"></select-by-type>
           <kuang v-if="theIndex === '1-3-1'"></kuang>
+          <price-score v-if="theIndex === '2-1-1'"></price-score>
         </div>
       </template>
     </split-pane>
@@ -99,13 +118,17 @@
 
 <script>
 import { defineComponent } from "@vue/composition-api";
-import similar from "./scenicAnalysis/similar.vue";
-import traffic from "./scenicAnalysis/trafficAna.vue";
-import SelectByDistance from "./scenicAnalysis/distanceSelect.vue";
-import SelectByType from "./scenicAnalysis/typeSelect.vue";
-import kuang from "./scenicAnalysis/kuang.vue";
+import similar from "./analysis_Scenic/similar.vue";
+import traffic from "./analysis_Scenic/trafficAna.vue";
+import SelectByDistance from "./analysis_Scenic/distanceSelect.vue";
+import SelectByType from "./analysis_Scenic/typeSelect.vue";
+import kuang from "./analysis_Scenic/kuang.vue";
+import distanceanlysis from "./analysis_Scenic/distance_anlysis"
+import PriceScore from "./son_components/PriceScore.vue"
 import axios from "axios";
 import geojson from "geojson";
+
+
 export default defineComponent({
   name: "hddhshfd",
   components: {
@@ -113,7 +136,9 @@ export default defineComponent({
     traffic,
     SelectByDistance,
     SelectByType,
-    kuang
+    kuang,
+    distanceanlysis,
+    PriceScore
   },
   data() {
     return {
@@ -215,16 +240,20 @@ export default defineComponent({
           lng: item.attraction_lon,
           lat: item.attraction_lat,
           name: item.attraction_name,
-          addresss: item.attraction_city
+          addresss: item.attraction_city,
+          id: item.attraction_id
         })
       );
       //coordinateslist每种类型的数据  坐标串的形式
       geoclassify = await geojson.parse(coordinateslist, {
         Point: ["lng", "lat"],
-        properties: ["name", "address"]
+        properties: ["name", "address","id"],
       });
       this.$EventBus.$emit("choiceclassify", geoclassify);
-      console.log(geoclassify);
+    },
+    checkinfo(){
+      alert("您的覆盖范围是"+this.bufferradius_km+"km,请双击进行景点选择")
+      this.$EventBus.$emit("buffer_km",this.bufferradius_km)
     }
   }
 });
@@ -255,4 +284,15 @@ export default defineComponent({
 .sp > :nth-child(1) {
   display: none;
 }
+  .inputradius{
+    text-align: center;
+    height: 23px;
+    margin-left: 30px;
+    width: 80px;
+  }
+  .km_text{
+    font-size: small;
+  }
+
 </style>
+
