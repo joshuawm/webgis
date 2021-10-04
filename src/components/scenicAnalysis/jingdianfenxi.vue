@@ -146,9 +146,7 @@ export default defineComponent({
       stepBoxWidth: null
     };
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {
     selectchoice(key, keyPath) {
       this.theIndex = key;

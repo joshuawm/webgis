@@ -13,6 +13,13 @@ import Vue from "vue";
 import VueComponentAPI from "@vue/composition-api";
 import attractionsCount from "../data/attractionsCount";
 Vue.use(VueComponentAPI);
+import popupComponets from "./scenicpop"
+const popup = Vue.extend(popupComponets)
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+
+
+Vue.use(ElementUI);
 
 export default {
   name: "jingdianfenxi",
@@ -31,12 +38,12 @@ export default {
     const map = new mapboxgl.Map({
       container: "map_show",
       style: "mapbox://styles/joshuamwong/ckte9azm523g217juhpczqo5q",
-      center: [114.405906, 30.534768],
-      zoom: 12
+        center: this.$store.state.mapCenter,
+        zoom: this.$store.state.mapZoom,
     });
     let navigatorController = new mapboxgl.NavigationControl();
     map.addControl(navigatorController, "top-left");
-    document.getElementById("features").innerHTML ="\n\n&nbsp;<b>点击景点将为您智能推荐</b>"
+    document.getElementById("features").innerHTML ="\n\n&nbsp;<b>点击景点将为您智能推荐相似景点</b>"
     map.on("load", () => {
       const mapDiv = document.getElementById("map_show");
       if (mapDiv.style.visibility === true) map.resize();
@@ -63,7 +70,7 @@ export default {
           "text-anchor": "right",
           "text-font": ["Open Sans Bold"],
           "text-line-height": 1.2,
-          "text-size": 8,
+          "text-size": 12,
           "text-offset": [-1, 0]
         }
       });
@@ -85,17 +92,9 @@ export default {
         // 'settlement-label'
       );
     });
+    let that = this
     map.on("click", async function(e) {
       var features = map.queryRenderedFeatures(e.point);
-      // var scenicurl="http://121.5.235.15/api/v2/zhouyou/_table/attractions?fields=attraction_id,attraction_name,attraction_city,attraction_lat,attraction_lon,attraction_tags,attraction_ratting";
-      // let response  = await axios.get(scenicurl, {
-      //   params: {
-      //     api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
-      //   }
-      // });
-      //scenic_data 是一个数组，数组的每一个元素都是一个对象
-      // var scenic_data = response.data.resource;
-      // console.log(scenic_data)
       var scenic_type = [];
       var scenictype = [
         "5A景区",
@@ -116,25 +115,6 @@ export default {
         "红色"
       ];
       if (features.length !== 0) {
-        // for(let i=0;i<scenic_data.length;i++){
-        //   for(let j=0;j<attractionsCount.features.length;j++){
-        //     if(scenic_data[i].attraction_id===attractionsCount.features[j].properties.id)
-        //     {
-        //       //更新scenice_data 给数组的每一个元素添加Count属性
-        //       scenic_data[i].Count=attractionsCount.features[j].properties.count;
-        //     }
-        //   }
-        //   if(scenic_data[i].attraction_id===features[0].properties.id){
-        //     //所选景区的类型  有些景区有多个类型 | 可以返回一个数组 记录所有的类型，然后比较所有类型的景点的score
-        //    //scenic_type包含所有景点类型的数组
-        //    if(scenic_data[i].attraction_tags.indexOf("|")!==-1){
-        //      scenic_type.push(scenic_data[i].attraction_tags.split("|"))
-        //    }
-        //     else{
-        //      scenic_type.push(scenic_data[i].attraction_tags)
-        //    }
-        //   }
-        // }
         let url01 =
           "http://121.5.235.15/api/v2/zhouyou/_table/Attractions?fields=*&filter=attraction_tags%20like%20%20%27";
         let resp = await axios.get(
@@ -148,11 +128,9 @@ export default {
           }
         );
         //scenic_type鼠标下景点的类型
-        scenic_type = resp.data.resource[0].attraction_tags.split("|");
+          scenic_type = resp.data.resource[0].attraction_tags.split("|");
         var scenictypedata = [];
         for (let t2 = 0; t2 < scenic_type.length; t2++) {
-          // scenictypedata.push(scenic_data.filter(
-          //   item=>((item.attraction_tags!=null && item.attraction_tags.indexOf("|")!==-1 &&item.attraction_tags!==''))? (item.attraction_tags.split("|").indexOf(scenic_type[t2])!==-1):(item.attraction_tags!=null&&item.attraction_tags!=='')?item.attraction_tags===scenic_type[t2]:0))
           let url_tmp = "";
           if (
             scenic_type[t2] === "5A景区" ||
@@ -198,12 +176,11 @@ export default {
         if (scenictypelist.length > 10) {
           scenictypelist = scenictypelist.slice(1, 11);
         }
-
         let listring = "";
         for (let index = 0; index < 10; index++) {
           listring =
             listring +
-            `<li><b>${scenictypelist[index].attraction_name}</b></li><br/>`;
+            `<li>${scenictypelist[index].attraction_name}<button id="${index}" style="float:right;-webkit-border-radius: 28px; -moz-border-radius: 28px; border-radius: 28px; color: black;background-color: white; border: none;";>Go</button></li><br/>`;
         }
         document.getElementById("features").innerHTML =
           "<br><br>这里是" +
@@ -212,8 +189,41 @@ export default {
           `<ol>
             ${listring}
             </ol>`;
+          for(let num =0;num<10;num++){
+            document.getElementById(num.toString()).addEventListener('click',  ()=> {
+              map.flyTo({
+                center: [scenictypelist[num].attraction_lat,scenictypelist[num].attraction_lon]
+              });
+              new mapboxgl.Popup().setLngLat([scenictypelist[num].attraction_lat,scenictypelist[num].attraction_lon]).setHTML("<div id='popup_similar'></div>").addTo(map);
+              let popupinfo={
+                id:scenictypelist[num].attraction_id,
+                type:"attractions"
+              };
+              new popup({
+                propsData:{
+                  popupInfo:popupinfo
+                }
+              }).$mount("#popup_similar")
+              map.panTo([scenictypelist[num].attraction_lat,scenictypelist[num].attraction_lon])
+            });
+
+          }
+
+
       }
     });
+    map.on("wheel", function() {
+        let range = map.getZoom();
+        that.$store.commit("set_map_zoom", range);
+        let c = map.getCenter();
+        that.$store.commit("set_map_center", c);
+      });
+    map.on("move", function() {
+        let range = map.getZoom();
+        that.$store.commit("set_map_zoom", range);
+        let c = map.getCenter();
+        that.$store.commit("set_map_center", c);
+      });
   },
   methods: {}
 };

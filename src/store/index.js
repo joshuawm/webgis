@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -36,7 +37,8 @@ export default new Vuex.Store({
     jingdianName: "",
     xystates: false,
     xyjingdianID: [],
-    xyjingdian: []
+    xyjingdian: [],
+    listToAnalysis:[]
   },
   mutations: {
     read_user_info(state, r_data) {
@@ -90,6 +92,33 @@ export default new Vuex.Store({
     remove_xy_data(state) {
       state.xyjingdianID = [];
       state.xyjingdian = [];
+    },
+    curd_list2analysis(state,data){
+      let type = data.type
+      let value = data.value
+
+      if(type==="add") {
+        if (value.length !== undefined) {
+          state.listToAnalysis = state.listToAnalysis.concat(value)
+        } else if (typeof value === "number") {
+          state.listToAnalysis.push(value)
+        } else if (typeof value === "string") {
+          state.listToAnalysis.push(value)
+        }
+        state.listToAnalysis = Array.from(new Set(state.listToAnalysis))
+      }else if(type==="delete"){
+        if (value.length !== undefined) {
+          for (let index =0;index<value.length;index++){
+            state.listToAnalysis= state.listToAnalysis.filter(x=>x!==value[index])
+          }
+        } else if (typeof value === "number") {
+          state.listToAnalysis= state.listToAnalysis.filter(x=>x!==value)
+        } else if (typeof value === "string") {
+          state.listToAnalysis= state.listToAnalysis.filter(x=>x!==Number(value))
+        }
+        state.listToAnalysis = Array.from(new Set(state.listToAnalysis))
+      }
+      console.log(state.listToAnalysis)
     }
   }
 });

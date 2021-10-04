@@ -477,6 +477,14 @@ export default {
 
 <style scoped>
 @import url("https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css");
+/deep/ .mapboxgl-popup-content{
+  width: fit-content;
+  height: fit-content;
+  background-color: rgba(255,255,255,0.8);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  border-radius: 14px;
+
+}
 #map {
   position: absolute;
   top: 60px;

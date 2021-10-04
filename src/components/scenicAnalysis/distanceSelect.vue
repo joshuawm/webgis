@@ -1,21 +1,23 @@
 <template>
   <div>
     <div id="map"></div>
+    <el-row>
+      <el-button id="appendtolist" type="primary" plain @click="appendclick">添加至分析列表</el-button>
+    </el-row>
   </div>
 </template>
 
 <script>
-// import geojsonvt from "geojson-vt"
 import mapboxgl from "@mapgis/mapbox-gl";
-// import {defineCompoent,createApp,ref,nextTick } from "@vue/composition-api"
+import jingdanimage from "../../assets/icon/jingdian32px.png";
 import Vue from "vue";
 import VueComponentAPI from "@vue/composition-api";
 import * as turf from "@turf/turf";
-Vue.use(VueComponentAPI);
-// Vue.use(turf)
 import attractiondata from "../data/attractions.json";
+import popupComponets from "./scenicpop";
+const popup = Vue.extend(popupComponets);
+Vue.use(VueComponentAPI);
 
-// const popup = Vue.extend(popupcomponent)
 export default {
   name: "map",
   props: {
@@ -24,59 +26,71 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      ptswithcirdata:{}
+    };
   },
   components: {},
-  setup() {},
   mounted() {
+    let that = this
+    this.$EventBus.$on("buffer_km", circlekm => {
+      this.bufferradius = circlekm;
+    });
     //实例化Map对象加载地图
     mapboxgl.accessToken =
       "pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ";
     const map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/joshuamwong/ckte9azm523g217juhpczqo5q",
-      center: [114.405906, 30.534768],
-      zoom: 12
+      center: this.$store.state.mapCenter,
+      zoom: this.$store.state.mapZoom
     });
     let navigatorController = new mapboxgl.NavigationControl();
     map.addControl(navigatorController, "top-left");
     map.on("load", () => {
-      const popup = new mapboxgl.Popup({
-        closeButton: false
+      map.loadImage(jingdanimage, (error, image) => {
+        if (error) {
+          console.log(error);
+        } else {
+          map.addImage("jingdian", image);
+        }
+        const canvas = map.getCanvasContainer();
+        canvas.style.cursor = "crosshair";
+        map.addSource("attractionlayer", {
+          type: "geojson",
+          data: attractiondata
+        });
+        map.addLayer({
+          id: "attractionLayer",
+          type: "symbol",
+          source: "attractionlayer",
+          paint: {
+            "text-color": "#FF8247"
+          },
+          layout: {
+            "text-field": "{name}",
+            "text-anchor": "right",
+            "text-font": ["Open Sans Bold"],
+            "text-line-height": 1.2,
+            "text-size": 12,
+            "text-offset": [-1, 0]
+          },
+          minzoom: 0,
+          maxzoom: 22
+        });
       });
       const canvas = map.getCanvasContainer();
       //鼠标按下的位置 即缓冲区的中心
       var buffercenter = [];
       //缓冲区的大小
       var bufferradius;
-      map.addSource("attractionlayer", {
-        type: "geojson",
-        data: attractiondata
-      });
-      map.addLayer({
-        id: "attractionLayer",
-        type: "symbol",
-        source: "attractionlayer",
-        layout: {
-          "text-field": "{name}",
-          "text-anchor": "right",
-          "text-font": ["Open Sans Bold"],
-          "text-line-height": 1.2,
-          "text-size": 12,
-          "text-offset": [-1, 0]
-        }
-      });
-
       let ptsWithincir;
-      map.on("click", e => {
+      map.on("dblclick", e => {
         //记录鼠标按下的位置的经纬度buffercenter
         buffercenter[0] = e.lngLat.lng;
         buffercenter[1] = e.lngLat.lat;
-        //后面需要根据选择动态生成bufferradius  单位是km
-        // bufferradius=10;
         let b_circle;
         let circle_buffergson;
-
         //生成半径为bufferradius的缓冲区 circle_buffergson是缓冲区的Geojson数据
         circle_buffergson = buffer_circle(buffercenter, this.bufferradius);
         function buffer_circle(center, radius) {
@@ -104,16 +118,25 @@ export default {
             var searchWithin = turf.polygon(buffergson.geometry.coordinates);
             //在缓冲区内景点 Geojson 格式
             ptsWithincir = turf.pointsWithinPolygon(all_points, searchWithin);
+            //数据传递
 
-            //缓冲区内的景点名字
-            // if(ptsWithincir.features.length!==0){
-            //   for(let i=0;i<ptsWithincir.features.length;i++){
-            //     var choicehighlight=attractiondata.features.filter
-            //     (item=>(item.geometry.coordinates[0]===ptsWithincir.features[i].geometry.coordinates[0])&&
-            //       (item.geometry.coordinates[1]===ptsWithincir.features[i].geometry.coordinates[1]));
-            //     console.log(choicehighlight[0]. properties.name);
-            //   }
-            // }
+            that.ptswithcirdata=ptsWithincir
+            // 缓冲区内的景点名字
+            if (ptsWithincir.features.length !== 0) {
+              for (let i = 0; i < ptsWithincir.features.length; i++) {
+                var choicehighlight = attractiondata.features.filter(
+                  item =>
+                    item.geometry.coordinates[0] ===
+                      ptsWithincir.features[i].geometry.coordinates[0] &&
+                    item.geometry.coordinates[1] ===
+                      ptsWithincir.features[i].geometry.coordinates[1]
+                );
+                ptsWithincir.features[i].properties.name =
+                  choicehighlight[0].properties.name;
+                ptsWithincir.features[i].properties.id =
+                  choicehighlight[0].properties.id;
+              }
+            }
             if (ptsWithincir.features.length < 1) {
               return window.alert("该范围内没有景点");
             } else {
@@ -148,18 +171,23 @@ export default {
             minzoom: 0,
             maxzoom: 22
           });
-          //在缓冲区内的景点 以黄色小圆的形式展现
+          //在缓冲区内的景点
           map.addLayer({
             id: "withincircle",
-            type: "circle",
+            type: "symbol",
             source: "ptswithincirsource",
             paint: {
-              "circle-radius": 10,
-              "circle-color": "yellow",
-              "circle-opacity": 0.5
+              "text-color": "#FF8247"
             },
-            minzoom: 0,
-            maxzoom: 22
+            layout: {
+              "icon-image": "jingdian",
+              "text-field": "{name}",
+              "text-anchor": "right",
+              "text-font": ["Open Sans Bold"],
+              "text-line-height": 1.2,
+              "text-size": 12,
+              "text-offset": [-1, 0]
+            }
           });
         } else {
           //更新数据
@@ -168,8 +196,10 @@ export default {
         }
       }),
         //鼠标悬浮在高亮的景点 会有景点名称的弹窗显示
-        map.on("mouseover", "withincircle", function(e) {
-        
+      map.on("click", "withincircle", e => {
+          const pointsfeatures = map.queryRenderedFeatures(e.point, {
+            layers: ["withincircle"]
+          });
           // 当鼠标点击高亮的景点时  鼠标改变style为pointer
           map.getCanvas().style.cursor = ptsWithincir.features.length
             ? "pointer"
@@ -178,21 +208,44 @@ export default {
             popup.remove();
             return;
           }
-       if (ptsWithincir.features.length !== 0) {
-              var choicehighlight = attractiondata.features.filter(
-                item =>item.geometry.coordinates ===e.lngLat
-              );
-              var name=choicehighlight[0];
-            
-          }
-             popup
+          new mapboxgl.Popup({ anchor: "right" })
             .setLngLat(e.lngLat)
-            .setText(name)
+            .setHTML("<div id='popup_distance'></div>")
             .addTo(map);
+          let popupinfo = {
+            id: pointsfeatures[0].properties.id,
+            type: "attractions"
+          };
+          new popup({
+            propsData: {
+              popupInfo: popupinfo
+            }
+          }).$mount("#popup_distance");
+          map.panTo([e.lngLat.lng, e.lngLat.lat]);
         });
+        let that = this
+      map.on("wheel", function() {
+        let range = map.getZoom();
+        that.$store.commit("set_map_zoom", range);
+        let c = map.getCenter();
+        that.$store.commit("set_map_center", c);
+      });
+      map.on("move", function() {
+        let range = map.getZoom();
+        that.$store.commit("set_map_zoom", range);
+        let c = map.getCenter();
+        that.$store.commit("set_map_center", c);
+      });
     });
   },
-  methods: {}
+  methods: {
+    appendclick(){
+      alert("是否将已选择景点全部加入分析列表");
+      this.$EventBus.$emit("distancelist",this.ptswithcirdata.features);
+      console.log("distance")
+      console.log(this.ptswithcirdata.features)
+    }
+  }
 };
 </script>
 
@@ -200,17 +253,16 @@ export default {
 @import url("https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css");
 #map {
   position: absolute;
-  top: 0px;
+  top: 0;
   bottom: 0;
   width: 100%;
 }
-.bcirclechoice {
-  background: rgba(56, 135, 190, 0.1);
-  border: 2px solid #3887be;
+#appendtolist {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  border-radius: 3px;
+  width: 150px;
 }
 </style>

@@ -1,6 +1,9 @@
 <template>
   <div>
     <div id="map"></div>
+    <el-row>
+      <el-button id="appendtolist" type="primary" plain @click="appendclick">添加至分析列表</el-button>
+    </el-row>
   </div>
 </template>
 
@@ -23,10 +26,13 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      ptswithcirdata:{}
+    };
   },
   components: {},
   mounted() {
+    let that = this
     this.$EventBus.$on("buffer_km", circlekm => {
       this.bufferradius = circlekm;
     });
@@ -85,7 +91,6 @@ export default {
         buffercenter[1] = e.lngLat.lat;
         let b_circle;
         let circle_buffergson;
-
         //生成半径为bufferradius的缓冲区 circle_buffergson是缓冲区的Geojson数据
         circle_buffergson = buffer_circle(buffercenter, this.bufferradius);
         function buffer_circle(center, radius) {
@@ -113,7 +118,9 @@ export default {
             var searchWithin = turf.polygon(buffergson.geometry.coordinates);
             //在缓冲区内景点 Geojson 格式
             ptsWithincir = turf.pointsWithinPolygon(all_points, searchWithin);
+            //数据传递
 
+            that.ptswithcirdata=ptsWithincir
             // 缓冲区内的景点名字
             if (ptsWithincir.features.length !== 0) {
               for (let i = 0; i < ptsWithincir.features.length; i++) {
@@ -189,7 +196,7 @@ export default {
         }
       }),
         //鼠标悬浮在高亮的景点 会有景点名称的弹窗显示
-        map.on("click", "withincircle", e => {
+      map.on("click", "withincircle", e => {
           const pointsfeatures = map.queryRenderedFeatures(e.point, {
             layers: ["withincircle"]
           });
@@ -205,7 +212,6 @@ export default {
             .setLngLat(e.lngLat)
             .setHTML("<div id='popup_distance'></div>")
             .addTo(map);
-            console.log(pointsfeatures)
           let popupinfo = {
             id: pointsfeatures[0].properties.id,
             type: "attractions"
@@ -232,7 +238,20 @@ export default {
       });
     });
   },
-  methods: {}
+  methods: {
+    appendclick(){
+      alert("是否将已选择景点全部加入分析列表");
+      console.log(this.ptswithcirdata.features)
+      let dat = this.ptswithcirdata.features.map(x=>{
+        return x.properties.id
+      })
+      console.log(dat)
+      this.$store.commit("curd_list2analysis",{type:"add",value:dat})
+      // this.$EventBus.$emit("distancelist",this.ptswithcirdata.features);
+      console.log("distance")
+      console.log(this.ptswithcirdata.features)
+    }
+  }
 };
 </script>
 
@@ -243,5 +262,13 @@ export default {
   top: 0;
   bottom: 0;
   width: 100%;
+}
+#appendtolist {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  border-radius: 3px;
+  width: 150px;
 }
 </style>

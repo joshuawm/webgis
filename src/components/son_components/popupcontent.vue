@@ -507,7 +507,11 @@ export default {
   max-height: 450px;
   min-width: 200px;
 }
-
+#godDamn{
+  background-color: transparent;
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+}
 .moreinfos {
   max-width: 200px;
   height: auto;

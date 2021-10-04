@@ -1,8 +1,9 @@
 <template>
   <div id="map">
     <div id="map_show">
-      <!--类别选择子组件-->
-      <!--<classify-choice/>-->
+    <el-row>
+      <el-button id="appendtolist" type="primary" plain  @click="appendclick">添加至分析列表</el-button>
+    </el-row>
     </div>
   </div>
 </template>
@@ -21,7 +22,8 @@ export default {
   name: "jingdianfenxi",
   data() {
     return {
-      activeIndex: this.$store.state.analysis_show
+      activeIndex: this.$store.state.analysis_show,
+      kuangfeatures:{}
     };
   },
   components: {},
@@ -38,6 +40,7 @@ export default {
     let navigatorController = new mapboxgl.NavigationControl();
     map.addControl(navigatorController, "top-left");
     map.on("load", () => {
+      let that = this
       alert("请同时按住shift键和鼠标左键进行框选");
       map.loadImage(jingdanimage, (error, image) => {
         if (error) {
@@ -158,6 +161,7 @@ export default {
             const features = map.queryRenderedFeatures(bbox, {
               layers: ["attractionLayer1"]
             });
+            that.kuangfeatures=features;
             if (features.length >= 1000) {
               return window.alert("Select a smaller number of features");
             }
@@ -186,7 +190,6 @@ export default {
             .setLngLat(e.lngLat)
             .setHTML("<div id='popup_kuang'></div>")
             .addTo(map);
-          console.log(features[0]);
           let popupinfo = {
             id: features[0].properties.id,
             type: "attractions"
@@ -198,7 +201,6 @@ export default {
           }).$mount("#popup_kuang");
           map.panTo([e.lngLat.lng, e.lngLat.lat]);
         });
-        let that = this
         map.on("wheel", function() {
           let range = map.getZoom();
           that.$store.commit("set_map_zoom", range);
@@ -217,6 +219,18 @@ export default {
   methods: {
     selectchoice(key, keyPath) {
       this.$store.commit("change_analysis_show", key);
+    },
+    appendclick(){
+      alert("是否将已选择景点全部加入分析列表")
+      //分发拉框内的景点数据
+      let temp = this.kuangfeatures.map(x=>{
+        return x.properties.id
+      })
+      console.log(this.kuangfeatures)
+      console.log(temp)
+      this.$store.commit("curd_list2analysis",{type:"add",value:temp})
+      console.log("kuang:")
+      console.log(this.kuangfeatures)
     }
   }
 };
@@ -231,5 +245,13 @@ export default {
   width: 100%;
   height: 100%;
   pointer-events: all;
+}
+#appendtolist {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  border-radius: 3px;
+  width: 150px;
 }
 </style>

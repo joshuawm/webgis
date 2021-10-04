@@ -18,7 +18,7 @@
       </div>
       <div>底图切换</div>
     </div>
-    <div class="charts">
+    <div class="charts" ref="kongtiao" @mousedown="mouseDownHandleelse($event)" @mouseup="mouseUpHandleelse($event)">
       <echarts></echarts>
     </div>
   </div>
@@ -37,7 +37,11 @@ export default {
   name: "PriceScore",
   data() {
     return {
-      map: undefined
+      map: undefined,
+      moveDataelse: {
+        x: null,
+        y: null
+      }
     };
   },
   mounted() {
@@ -187,6 +191,23 @@ export default {
         );
         this.map.addLayer(layer);
       }
+    },
+    mouseDownHandleelse (event) {
+      this.moveDataelse.x = event.pageX - this.$refs.kongtiao.offsetLeft
+      this.moveDataelse.y = event.pageY - this.$refs.kongtiao.offsetTop
+      event.currentTarget.style.cursor = 'move'
+      window.onmousemove = this.mouseMoveHandleelse
+    },
+    mouseMoveHandleelse (event) {
+      let moveLeft = event.pageX - this.moveDataelse.x + 'px'
+      let moveTop = event.pageY - this.moveDataelse.y + 'px'
+      this.$refs.kongtiao.style.left = moveLeft
+      this.$refs.kongtiao.style.top = moveTop
+    },
+    mouseUpHandleelse (event) {
+      window.onmousemove = null
+      event.currentTarget.style.cursor = 'move'
+      console.log('鼠标松开了')
     }
   },
   components: {
@@ -210,9 +231,11 @@ export default {
   border: 1px solid white;
   background-color: rgba(255,255,255,0.6);
   /*background: transparent;*/
-  position: absolute;
-  right: 5%;
-  top: 3%;
+  position: fixed;
+  cursor: pointer;
+  /*right: 5%;*/
+  top: 15%;
+  left:50%;
   /*width: 35.6%;*/
   /*height: 50%;*/
   box-shadow: rgba(0, 0, 0, 0.24) 0px 6px 12px;

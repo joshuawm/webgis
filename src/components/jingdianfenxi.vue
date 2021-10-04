@@ -69,8 +69,8 @@
                     <el-menu-item-group>
                       <el-menu-item index="2-1-0">距离分析</el-menu-item>
                       <el-menu-item index="2-1-1">价格评分分析</el-menu-item>
-                      <!-- <el-menu-item index="2-1-2">评分分析</el-menu-item> -->
                       <el-menu-item index="2-1-3">人流量分析</el-menu-item>
+                      <el-menu-item index="2-1-4">景点分析列表</el-menu-item>
                     </el-menu-item-group>
                   </el-submenu>
                   <el-menu-item index="3">
@@ -110,6 +110,7 @@
           <select-by-type v-if="typeSelectActive"></select-by-type>
           <kuang v-if="theIndex === '1-3-1'"></kuang>
           <price-score v-if="theIndex === '2-1-1'"></price-score>
+          <listtoanalysis v-if="theIndex ==='2-1-4'"></listtoanalysis>
         </div>
       </template>
     </split-pane>
@@ -124,9 +125,11 @@ import SelectByDistance from "./analysis_Scenic/distanceSelect.vue";
 import SelectByType from "./analysis_Scenic/typeSelect.vue";
 import kuang from "./analysis_Scenic/kuang.vue";
 import distanceanlysis from "./analysis_Scenic/distance_anlysis"
-import PriceScore from "./son_components/PriceScore.vue"
+// import PriceScore from "./scenicAnalysis/PriceScore.vue"
+import listtoanalysis from "./analysis_Scenic/listtoanalysis"
 import axios from "axios";
 import geojson from "geojson";
+
 
 
 export default defineComponent({
@@ -138,7 +141,8 @@ export default defineComponent({
     SelectByType,
     kuang,
     distanceanlysis,
-    PriceScore
+    // PriceScore,
+    listtoanalysis
   },
   data() {
     return {
@@ -149,7 +153,12 @@ export default defineComponent({
       stepBoxWidth: null
     };
   },
-  mounted() {},
+  mounted() {
+    this.$EventBus.$on("bridge",(value)=>{
+      console.log("bridgr ok")
+      this.$store.commit("curd_list2analysis",{type:"add",value:value})
+    })
+  },
   methods: {
     selectchoice(key, keyPath) {
       this.theIndex = key;

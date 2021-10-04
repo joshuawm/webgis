@@ -131,8 +131,6 @@ export default {
           scenic_type = resp.data.resource[0].attraction_tags.split("|");
         var scenictypedata = [];
         for (let t2 = 0; t2 < scenic_type.length; t2++) {
-          // scenictypedata.push(scenic_data.filter(
-          //   item=>((item.attraction_tags!=null && item.attraction_tags.indexOf("|")!==-1 &&item.attraction_tags!==''))? (item.attraction_tags.split("|").indexOf(scenic_type[t2])!==-1):(item.attraction_tags!=null&&item.attraction_tags!=='')?item.attraction_tags===scenic_type[t2]:0))
           let url_tmp = "";
           if (
             scenic_type[t2] === "5A景区" ||
@@ -178,7 +176,6 @@ export default {
         if (scenictypelist.length > 10) {
           scenictypelist = scenictypelist.slice(1, 11);
         }
-
         let listring = "";
         for (let index = 0; index < 10; index++) {
           listring =
@@ -215,13 +212,13 @@ export default {
 
       }
     });
-          map.on("wheel", function() {
+    map.on("wheel", function() {
         let range = map.getZoom();
         that.$store.commit("set_map_zoom", range);
         let c = map.getCenter();
         that.$store.commit("set_map_center", c);
       });
-      map.on("move", function() {
+    map.on("move", function() {
         let range = map.getZoom();
         that.$store.commit("set_map_zoom", range);
         let c = map.getCenter();

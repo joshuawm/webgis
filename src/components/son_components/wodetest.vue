@@ -2,46 +2,71 @@
   <div>
     <div id="map"></div>
     <div id="god">
-    <div id="flexbaby">
-    <div id="leftall">
-<!--    收藏与轨迹-->
-    <div id="favorAndtrace">
-      <div class="favorite">
-        <div v-for="favor in userInfo.favorite">
-          <button class="favorButton" @click="goto(favor.lngLat)">{{favor.name}}</button>
-        </div>
-      </div>
-      <div class="trace">
-        <div v-for="trace in userInfo.trace">
-          <button class="traceButton" @click="goto(trace.trace[0])">{{trace.name}}</button>
-        </div>
-      </div>
-    </div>
-    </div>
-    <div id="rightall">
-      <div id="rightflex">
-    <!--    游友-->
-    <div id="youyu">
-      <div><el-row><el-col :span="12" ><div style="text-align: center" @click="xyActive=!xyActive;ybActive=!ybActive">游博</div></el-col><el-col :span="12" ><div @click="xyActive=!xyActive;ybActive=!ybActive" style="text-align: center">寻友</div></el-col></el-row></div>
-      <div v-if="ybActive" id="yb">
-        <div class="timeline">
-          <timeline></timeline>
-        </div>
-      </div>
-      <div v-if="xyActive" id="xy">
-        <div class="xyclass"><find-friends></find-friends></div>
-      </div>
-    </div>
-<!--    我的信息-->
-    <div id="myInfo">
+    <div id="youyustart">
       <div>
-        <span class="el-icon-s-custom"></span>
-        <el-row><el-col :span="18"><el-input v-model="userInfo.user.userName" ></el-input></el-col><el-col :span="6"><span style="font-size: 4px">修改</span></el-col></el-row>
-        <el-row><el-col :span="18"><el-input v-model="userInfo.user.userPhone" ></el-input></el-col><el-col :span="6"><span style="font-size: 6px">修改</span></el-col></el-row>
-        <el-row><el-col :span="18"><el-input v-model="userInfo.user.userEmail" ></el-input></el-col><el-col :span="6"><span style="font-size: 6px">修改</span></el-col></el-row>
+        <div id="functionZone" >
+          <span style="font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;margin:3px 20px;">{{userInfo.user.userName}}</span>
+          <span class="el-icon-notebook-2 funcButton" @click="myInfoActive=true;favorAndtraceActive=false;youyuActive=false;">我的信息</span>
+          <span class="el-icon-bell funcButton">我的消息</span>
+          <span class="el-icon-star-off funcButton" @click="favorAndtraceActive=true;myInfoActive=false;youyuActive=false;">我的收藏</span>
+          <span class="el-icon-s-custom funcButton" @click="youyuActive=true;myInfoActive=false;favorAndtraceActive=false;">游友</span>
+        </div>
+      </div>
+      <div v-if="myInfoActive" id="myInfo">
+        <div>
+          <div style="text-align: right;margin-right: 20px;" ><span class="el-icon-circle-close" @click="myInfoActive=false;"></span></div>
+          <input v-model="userInfo.user.userName" disabled></input><br>
+          <input v-model="userInfo.user.userPhone" disabled ></input> <span class="el-icon-edit"></span><br>
+          <input v-model="userInfo.user.userEmail" disabled ></input> <span class="el-icon-edit"></span>
+        </div>
       </div>
     </div>
+
+    <div id="flexbaby">
+    <div id="rightall">
+      <div v-if="favorAndtraceActive" id="favorAndtrace">
+        <div style="text-align: right;"><span class="el-icon-circle-close" style="margin-top: 1px;" @click="favorAndtraceActive=false;"></span></div>
+        <span style="margin-left: 5px;font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;">景点收藏</span>
+        <div class="favorite">
+          <div v-for="favor in userInfo.favorite">
+            <button class="favorButton" @click="goto(favor.lngLat)">{{favor.name}}</button>
+          </div>
+        </div>
+        <span style="margin-left: 5px;font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;">轨迹收藏</span>
+        <div class="trace">
+          <div v-for="trace in userInfo.trace">
+            <button class="traceButton" @click="goto(trace.trace[0])">{{trace.name}}</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="rightDrag" ref="kongtiao" >
+        <div id="rightflex" >
+            <div v-if="youyuActive" id="youyu">
+              <div style="text-align: right;margin-right: 20px;" ></div>
+              <div @mousedown="mouseDownHandleelse($event)" @mouseup="mouseUpHandleelse($event)"><el-row><el-col :span="12" ><div style="text-align: center" ><span @click="ybActive=true;xyActive=false;">游博</span></div></el-col><el-col :span="10" ><div  style="text-align: center"><span @click="xyActive=true;ybActive=false;">寻友</span></div></el-col><el-col :span="2"><span class="el-icon-circle-close" style="margin-top: 1px;" @click="youyuActive=false;"></span></el-col></el-row></div>
+              <div class="content">
+                <div  v-if="ybActive" id="yb">
+                  <div class="timeline">
+                    <timeline></timeline>
+                  </div>
+                </div>
+                <div v-if="xyActive" id="xy">
+                  <div class="xyclass"><find-friends></find-friends></div>
+                </div>
+              </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!--    收藏与轨迹-->
+
     </div>
+    <div id="leftall">
+
+
+
     </div>
     </div>
   </div>
@@ -55,7 +80,7 @@ import axios from "axios";
 import geojson from "geojson";
 import randomColor from "randomcolor";
 import walkman from "../../assets/icon/arrow-right32px.png";
-import timeline from "./timeline";
+import timeline from "./timelineyb";
 import findFriends from "./findFriends";
 
 export default {
@@ -91,8 +116,16 @@ export default {
      },
      backPic:null,
      userID:null,
-     xyActive:false,
-     ybActive:true
+     xyActive:true,
+     ybActive:false,
+     youyuActive:true,
+     favorAndtraceActive:false,
+     myInfoActive:false,
+     moveDataelse: {
+       x: null,
+       y: null
+     }
+
 
    }
   },
@@ -293,7 +326,25 @@ export default {
         center:lngLat
         // zoom:14
       })
+    },
+    mouseDownHandleelse (event) {
+      this.moveDataelse.x = event.pageX - this.$refs.kongtiao.offsetLeft
+      this.moveDataelse.y = event.pageY - this.$refs.kongtiao.offsetTop
+      event.currentTarget.style.cursor = 'move'
+      window.onmousemove = this.mouseMoveHandleelse
+    },
+    mouseMoveHandleelse (event) {
+      let moveLeft = event.pageX - this.moveDataelse.x + 'px'
+      let moveTop = event.pageY - this.moveDataelse.y + 'px'
+      this.$refs.kongtiao.style.left = moveLeft
+      this.$refs.kongtiao.style.top = moveTop
+    },
+    mouseUpHandleelse (event) {
+      window.onmousemove = null
+      event.currentTarget.style.cursor = 'move'
+      console.log('鼠标松开了')
     }
+
 
   }
 }
@@ -310,21 +361,29 @@ export default {
 }
 
 #flexbaby{
-  display: flex;
+  /*display: flex;*/
   z-index: 2;
 }
 #leftall{
-  width: 50%;
+  width: fit-content;
   margin-left: 5%;
 }
 #rightall{
   width: 50%;
   position: absolute;
   top: 15%;
-  right: 10%;
+  right: 0%;
+}
+#rightDrag{
+  position: fixed;
+  /*cursor: pointer;*/
+  left: 75%;
 }
 #rightflex{
-  backdrop-filter: blur(2px);
+  /*float: right;*/
+  /*position: fixed;*/
+  /*cursor: pointer;*/
+  /*backdrop-filter: blur(2px);*/
   border-radius: 12px;
   /*position: absolute;*/
   /*z-index: 2;*/
@@ -336,6 +395,7 @@ export default {
   align-content: stretch;
   align-items: flex-start;
   justify-content: flex-end;
+  background-color: rgba(255,255,255,0.8);
 
 }
 #youyu{
@@ -344,28 +404,47 @@ export default {
 #myInfo{
   width: fit-content;
   margin: 24px 2px;
+  background-color: rgba(255,255,255,0.8);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 }
 #favorAndtrace{
   /*backdrop-filter: blur(2px);*/
+  float: right;
+  top: 27%;
   background-color: transparent;
   border-radius: 12px;
   position: absolute;
-  top: 15%;
+  /*top: 15%;*/
+  width: 25%;
+  left: 70%;
   /*z-index: 2;*/
 }
-#favorAndtrace:hover{
-  background-color: rgba(255,255,255,0.8);
+/*#favorAndtrace:hover{*/
+/*  background-color: rgba(255,255,255,0.8);*/
+/*}*/
+.content{
+  width: 300px;
+  height: 60%;
 }
 #youyu{
 
 }
 #yb{
+  width: 100%;
   backdrop-filter: blur(2px);
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 }
+#xy{
+  width: 100%;
+}
 .favorite{
   display: flex;
-
+  flex-wrap: wrap;
+}
+#youyustart{
+  position: absolute;
+  left: 4%;
+  top: 12%;
 }
 .favorButton{
   border:1px solid black;
@@ -398,5 +477,17 @@ export default {
   -webkit-transition: border-color .2s cubic-bezier(.645,.045,.355,1);
   transition: border-color .2s cubic-bezier(.645,.045,.355,1);
   width: fit-content;
+}
+.funcButton{
+  margin: 4px 12px;
+}
+#functionZone{
+  backdrop-filter: blur(2px);
+  width: fit-content;
+  background-color: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  padding: 5px;
+
 }
 </style>

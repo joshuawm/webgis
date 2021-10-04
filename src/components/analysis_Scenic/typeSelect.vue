@@ -1,11 +1,14 @@
 <template>
   <div>
     <div id="map"></div>
+    <el-row>
+      <el-button id="appendtolist" type="primary" plain @click="appendclick">添加至分析列表</el-button>
+    </el-row>
   </div>
 </template>
 
 <script>
-  import Vue from "vue"
+import Vue from "vue"
 import mapboxgl from "@mapgis/mapbox-gl";
 import jingdanimage from "../../assets/icon/jingdian32px.png"
 import popupComponets from "./scenicpop"
@@ -15,7 +18,8 @@ export default {
   data() {
     return {
       map: null,
-      sourceID: "source_geojsonID"
+      sourceID: "source_geojsonID",
+      typedata:{}
     };
   },
   components: {
@@ -113,13 +117,22 @@ export default {
       });
     },
     classchoice(data) {
-      console.log(data)
       if (this.map.getSource( "source_geojsonID")===undefined){
-        setTimeout(()=>{this.map.getSource( "source_geojsonID")},100)
+        setTimeout(()=>{this.map.getSource( "source_geojsonID")},100);
+        this.typedata=data
       }
       else {
         this.map.getSource( "source_geojsonID").setData(data);
+        this.typedata=data
       }
+    },
+    appendclick(){
+      alert("是否将已选择景点全部加入分析列表");
+      let temp = this.typedata.features.map(x=>{
+        return x.properties.id
+      })
+      this.$store.commit("curd_list2analysis",{type:"add",value:temp})
+      // this.$EventBus.$emit("typelist",this.typedata.features);
     }
   }
 };
@@ -134,6 +147,15 @@ export default {
   width: 100%;
   height: 100%;
   pointer-events: all;
+}
+#appendtolist {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  border-radius: 3px;
+  width: 150px;
+
 }
 #boxchoice {
   position: absolute;
