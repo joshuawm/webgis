@@ -3,7 +3,7 @@
     <div id="map"></div>
     <div class="basemapSwitch">
       <div class="switchPanel">
-        <div>
+        <div class="styles">
           <img
             :src="require('../assets/icon/default.png')"
             alt="默认"
@@ -11,7 +11,7 @@
           />
           <p @click="mapChange('default')">默认</p>
         </div>
-        <div>
+        <div class="styles">
           <img
             :src="require('../assets/icon/bubble.png')"
             alt="bubble"
@@ -19,7 +19,7 @@
           />
           <p @click="mapChange('bubble')">bubble</p>
         </div>
-        <div>
+        <div class="styles">
           <img
             :src="require('../assets/icon/sateline.jpg')"
             alt="卫星"
@@ -28,7 +28,7 @@
           <p @click="mapChange('satellite')">卫星</p>
         </div>
       </div>
-      <div>
+      <div class="switchText">
         底图切换
       </div>
     </div>
@@ -59,7 +59,22 @@ export default {
   data() {
     return {
       map: undefined,
-      marker: undefined
+      marker: undefined,
+      styleStore:[
+        {
+          name:"default",
+          style:"mapbox://styles/joshuamwong/ckte9azm523g217juhpczqo5q"
+        },
+        {
+          name:"bubble",
+          style:"mapbox://styles/joshuamwong/cku0ntnkl4oqg17nwxmvdf244"
+        },
+        {
+          name:"stateline",
+          style:"mapbox://styles/joshuamwong/cku0nu05e4p5j17nvzfsyb5xv"
+        }
+      ]
+
     };
   },
   mounted() {
@@ -513,6 +528,34 @@ p {
 }
 .basemapSwitch:hover .switchPanel {
   display: flex;
-  background-color: beige;
+  background-color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(3px);
+  border-radius: 12px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  margin: 2px 8px;
+}
+.styles{
+  margin: 6px 3px;
+}
+img{
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  border-radius: 6px;
+  border: 1px solid black;
+}
+p{
+  text-align: center;
+  font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;
+  margin-top: 3px;
+}
+.switchText{
+  background-color: rgba(255,255,255,0.8);
+  backdrop-filter: blur(3px);
+  border-radius: 6px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  padding: 8px;
+  font-weight: bold;
+}
+.basemapSwitch:hover .switchText{
+  display: none;
 }
 </style>

@@ -160,9 +160,6 @@ export default {
     appendto(){
       alert("确定将此景点添加至分析列表？")
       this.$EventBus.$emit("bridge",this.poiID)
-
-      console.log("signal_id")
-      console.log(this.poiID)
     },
     morechoice(type){
       this.morecontent=this.info[type]

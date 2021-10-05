@@ -9,6 +9,7 @@
       </div>
     </div>
     <nav id="menu"></nav>
+    <div id="distance" class="distance-container"></div>
   </div>
 </template>
 
@@ -40,55 +41,10 @@
       },
       components: {},
       mounted(){
-
         this.$EventBus.$on("bridge",(value)=>{
-          console.log("bridgr ok")
           this.$store.commit("curd_list2analysis",{type:"add",value:value})
           this.getAlLMyData()
-        })
-
-        //多个图层
-        var toggleableLayerIds = [ '距离分析', '价格评分分析','人流量分析' ];
-        //显示图层的切换和选择
-        for (var i = 0; i < toggleableLayerIds.length; i++) {
-          var id = toggleableLayerIds[i];
-          var link = document.createElement('a');
-          //a标签的样式
-          Object.assign(link.style, {
-            fontSize: "13px",
-            color: "#404040",
-            display: "block",
-            margin:"0",
-            padding:"5px" ,
-            textDecoration: "none",
-            borderBottom: "1px solid rgba(0,0,0,0.25)",
-            textAlign: "center",
-
-            backgroundColor: "transparent"
-          });
-          link.href = '#';
-          link.className = 'active';
-          link.textContent = id;
-
-          link.onclick = function (e) {
-            var clickedLayer = this.textContent;
-            e.preventDefault();
-            e.stopPropagation();
-
-            var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
-
-            if (visibility === 'visible') {
-              map.setLayoutProperty(clickedLayer, 'visibility', 'none');
-              this.className = '';
-            } else {
-              this.className = 'active';
-              map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
-            }
-          };
-          var layers = document.getElementById('menu');
-          layers.appendChild(link);
-        }
-
+        });
         let that = this;
         mapboxgl.accessToken =
           "pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ";
@@ -100,18 +56,21 @@
         });
         // let navigatorController = new mapboxgl.NavigationControl();
         // map.addControl(navigatorController, "top-left");
+        var distanceContainer = document.getElementById("distance");
         //利用一个GeoJSON对象来储存测量对象
         var geojson = {
           type: "FeatureCollection",
           features: []
         };
-        //添加类别选择数据
-
+        //线的gson数据
+        var linestring = {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: []
+          }
+        };
         this.getAlLMyData()
-
-
-        //当前分析列表的所有景点数据都存在totalsceniclist里
-
           map.on("load", () => {
           map.loadImage(jingdanimage, (error, image) => {
             if (error) {
@@ -148,7 +107,6 @@
           });
           //点选景点
           map.on("click", "attractionLayer", (e) =>{
-            console.log("click_yes")
             new mapboxgl.Popup({anchor:"right"}).setLngLat(e.lngLat).setHTML("<div id='list_scenic'></div>").addTo(map);
             let popupinfo={
               id:e.features[0].properties.id,
@@ -161,38 +119,7 @@
             }).$mount("#list_scenic");
             map.panTo([e.lngLat.lng,e.lngLat.lat])
           });
-          //添加距离分析的source 和 layer
-          map.addSource("geojson", {
-            type: "geojson",
-            data: geojson
-          });
-          map.addLayer({
-            id: "measure-points",
-            type: "circle",
-            source: "geojson",
-            paint: {
-              "circle-radius": 5,
-              "circle-color": "#3182bd"
-            },
-            filter: ["in", "$type", "Point"]
-          });
-          map.addLayer({
-            id: "距离分析",
-            type: "line",
-            source: "geojson",
-            paint: {
-              "line-width": 2.5,
-              "line-color": "#3182bd"
-            },
-            layout: {
-              "line-cap": "round",
-              "line-join": "round"
-            },
-            filter: ["in", "$type", "LineString"]
-          });
-          console.log("geojsonfeatures")
-          console.log(this.selectedJSON.features)
-          geojson.features=geojson.features.concat(this.selectedJSON.features.geometry)
+          geojson.features=geojson.features.concat(this.selectedJSON.features);
           if (geojson.features.length > 1) {
             linestring.geometry.coordinates = geojson.features.map(function (
               point
@@ -201,79 +128,53 @@
             });
             //将线数据写入geojson
             geojson.features.push(linestring);
+            //添加距离分析的source 和 layer
+            map.addSource("geojson", {
+              type: "geojson",
+              data: linestring
+            });
+            map.addLayer({
+              id: "距离分析",
+              type: "line",
+              source: "geojson",
+              paint: {
+                "line-width": 2.5,
+                "line-color": "#3182bd"
+              },
+              layout: {
+                "line-cap": "round",
+                "line-join": "round"
+              },
+              // filter: ["in", "$type", "LineString"]
+            });
             var value = document.createElement("pre");
             value.textContent =
-              "距离总和是:" +
+              "所有选中景点的距离总和是:" +
               turf.lineDistance(linestring).toLocaleString() +
               "km";
             distanceContainer.appendChild(value);
           }
           //添加价格评分分析的source和layer
           //添加人流量分析的source 和 layer
-          for (let i = 0; i < this.totalsceniclist.length; i++) {
+
+          for (let i = 0; i <this.selectedJSON.features.length; i++) {
             for (let j = 0; j < attractionsCount.features.length; j++) {
               if (
-                this.totalsceniclist[i].properties.id ===
+                this.selectedJSON.features[i].properties.id ===
                 attractionsCount.features[j].properties.id
               ) {
-                //更新totalsceniclist给数组的每一个元素添加Count属性
-                this.totalsceniclist[i].properties.Count =
+                //更新totalsceniclist给数组的每一个元素的properties添加Count属性 this.selectedJSON.features[i].properties.Count
+                this.selectedJSON.features[i].properties.Count =
                   attractionsCount.features[j].properties.count;
               }
             }
           }
           map.addSource("attractionsource", {
             type: "geojson",
-            data: this.totalsceniclist
+            data: geojson
           });
           map.addLayer({
-            id: "attractionvisit-heat",
-            type: "heatmap",
-            source: "attractionsource",
-            maxzoom: 10,
-            paint: {
-              //每个景点的权重 将count作为权重的依据
-              "heatmap-weight": [
-                "interpolate",
-                ["linear"],
-                ["get", "Count"],
-                1,
-                0,
-                1000,
-                100
-              ],
-              "heatmap-intensity": [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                5,
-                1,
-                10,
-                5
-              ],
-              "heatmap-color": [
-                "interpolate",
-                ["linear"],
-                ["heatmap-density"],
-                0,
-                "rgba(26,152,80,0)",
-                0.2,
-                "rgb(145,207,96)",
-                0.4,
-                "rgb(217,239,139)",
-                0.6,
-                "rgb(254,224,139)",
-                0.8,
-                "rgb(252,141,89)",
-                1,
-                "rgb(215,48,39)"
-              ],
-              "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 5, 2, 10, 20],
-              "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 5, 1, 10, 0]
-            }
-          });
-          map.addLayer({
-            id: "attractionvisit-point",
+            id: "人流量分析",
             type: "circle",
             source: "attractionsource",
             minzoom: 7,
@@ -287,7 +188,6 @@
                 10,
                 ["interpolate", ["linear"], ["get", "Count"], 1, 5, 1000, 20]
               ],
-              // Color circle by earthquake magnitude
               "circle-color": [
                 "interpolate",
                 ["linear"],
@@ -305,15 +205,14 @@
                 10000,
                 "rgb(215,48,39)"
               ],
-
-              // Transition from heatmap to circle layer by zoom level
-              "circle-opacity": ["interpolate", ["linear"], ["zoom"], 5, 0, 10, 1]
-            }
+              "circle-opacity": ["interpolate", ["linear"], ["zoom"], 5, 0, 10, 1],
+            },
+             filter: ["in", "$type", "Point"]
           });
-          map.on("click", "attractionvisit-point", function(e) {
-            console.log("tesdt");
+          map.on("click", "人流量分析", function(e) {
             var sentence = "";
-            if (e.features[0].properties.count < 1000) {
+            //this.selectedJSON.features[i].properties.Count
+            if (e.features[0].properties.Count < 1000) {
               sentence = "该景点人数适宜，可放心前往";
             } else {
               sentence = "该景点人数可能较多，请谨慎前往";
@@ -323,13 +222,52 @@
               .setHTML(
                 `<b>${e.features[0].properties.name}</b>` +
                 "在携程的评论数量为: " +
-                `<b>${e.features[0].properties.count.toString()}</b>` +
+                `<b>${e.features[0].properties.Count.toString()}</b>` +
                 "<br>" +
                 sentence
               )
               .addTo(map);
           });
+            //多个图层
+            var toggleableLayerIds = [ '距离分析', '价格评分分析','人流量分析' ];
+            //显示图层的切换和选择
+            for (var i = 0; i < toggleableLayerIds.length; i++) {
+              var id = toggleableLayerIds[i];
+              var link = document.createElement('a');
+              //a标签的样式
+              Object.assign(link.style, {
+                fontSize: "13px",
+                color: "#404040",
+                display: "block",
+                margin:"0",
+                padding:"5px" ,
+                textDecoration: "none",
+                borderBottom: "1px solid rgba(0,0,0,0.25)",
+                textAlign: "center",
 
+                backgroundColor: "transparent"
+              });
+              link.href = '#';
+              link.className = 'active';
+              link.textContent = id;
+
+              link.onclick = function (e) {
+                var clickedLayer = this.textContent;
+                e.preventDefault();
+                e.stopPropagation();
+                var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+                if (visibility === 'visible') {
+                  map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+                  this.className = '';
+                } else {
+                  this.className = 'active';
+                  map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+                }
+              };
+              var layers = document.getElementById('menu');
+              layers.appendChild(link);
+            }
 
           map.on("wheel", function() {
             let range = map.getZoom();
@@ -383,7 +321,11 @@
             }
             this.checkedList = list
             this.totalsceniclist=list
-            console.log(list)
+            //list选中景点的id
+            //geojsondata选中景点的具体数据
+            let geojsondata = GeoJSON.parse(this.poidata,{"Point":["lon","lat"],include:['name',"id"]})
+            //this.selectedJSON选中景点的JSON数据
+            this.selectedJSON=geojsondata
           }
         }}
       },
@@ -489,5 +431,13 @@
   #menu a:active:hover {
     background: #3074a4;
   }
-
+  .distance-container {
+    margin: auto;
+    background-color: rgba(222, 235, 247, 0.5);
+    position: absolute;
+    top: 10px;
+    left: 500px;
+    z-index: 1;
+    boreder:12px;
+  }
 </style>

@@ -45,6 +45,12 @@
             <div v-if="youyuActive" id="youyu">
               <div style="text-align: right;margin-right: 20px;" ></div>
               <div @mousedown="mouseDownHandleelse($event)" @mouseup="mouseUpHandleelse($event)"><el-row><el-col :span="12" ><div style="text-align: center" ><span @click="ybActive=true;xyActive=false;">游博</span></div></el-col><el-col :span="10" ><div  style="text-align: center"><span @click="xyActive=true;ybActive=false;">寻友</span></div></el-col><el-col :span="2"><span class="el-icon-circle-close" style="margin-top: 1px;" @click="youyuActive=false;"></span></el-col></el-row></div>
+              <div id="sendPanel">
+                <div class="sendButton"><span class="el-icon-circle-plus-outline"></span></div>
+                <div class="sendChoicePanel">
+                  <span>游博</span> <span>游友</span>
+                </div>
+              </div>
               <div class="content">
                 <div  v-if="ybActive" id="yb">
                   <div class="timeline">
@@ -424,10 +430,11 @@ export default {
 /*}*/
 .content{
   width: 300px;
-  height: 60%;
+  height: 100%;
+
 }
 #youyu{
-
+  min-height: 60%;
 }
 #yb{
   width: 100%;
@@ -489,5 +496,16 @@ export default {
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   padding: 5px;
 
+}
+.sendChoicePanel{
+  display: none;
+}
+#sendPanel:hover .sendChoicePanel{
+  display: block;
+  background-color: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  padding: 5px;
+  z-index: 4;
 }
 </style>
