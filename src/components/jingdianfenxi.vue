@@ -154,10 +154,7 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.$EventBus.$on("bridge",(value)=>{
-      console.log("bridgr ok")
-      this.$store.commit("curd_list2analysis",{type:"add",value:value})
-    })
+
   },
   methods: {
     selectchoice(key, keyPath) {

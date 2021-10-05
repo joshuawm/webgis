@@ -23,19 +23,72 @@
   import VueComponentAPI from "@vue/composition-api";
   import popupComponets from "./scenicpop";
   const popup = Vue.extend(popupComponets);
+  import GeoJSON from "geojson";
   Vue.use(VueComponentAPI);
 
     export default {
       name: "listtoanalysis",
       data() {
         return {
+          map:null,
           totalsceniclist:[],
           poidata:[],
-          checkedList:[]
+          checkedList:[],
+          selectedJSON:null,
+
         };
       },
       components: {},
       mounted(){
+
+        this.$EventBus.$on("bridge",(value)=>{
+          console.log("bridgr ok")
+          this.$store.commit("curd_list2analysis",{type:"add",value:value})
+          this.getAlLMyData()
+        })
+
+        //多个图层
+        var toggleableLayerIds = [ '距离分析', '价格评分分析','人流量分析' ];
+        //显示图层的切换和选择
+        for (var i = 0; i < toggleableLayerIds.length; i++) {
+          var id = toggleableLayerIds[i];
+          var link = document.createElement('a');
+          //a标签的样式
+          Object.assign(link.style, {
+            fontSize: "13px",
+            color: "#404040",
+            display: "block",
+            margin:"0",
+            padding:"5px" ,
+            textDecoration: "none",
+            borderBottom: "1px solid rgba(0,0,0,0.25)",
+            textAlign: "center",
+
+            backgroundColor: "transparent"
+          });
+          link.href = '#';
+          link.className = 'active';
+          link.textContent = id;
+
+          link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+            if (visibility === 'visible') {
+              map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+              this.className = '';
+            } else {
+              this.className = 'active';
+              map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+            }
+          };
+          var layers = document.getElementById('menu');
+          layers.appendChild(link);
+        }
+
         let that = this;
         mapboxgl.accessToken =
           "pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ";
@@ -45,8 +98,8 @@
           center: this.$store.state.mapCenter,
           zoom: this.$store.state.mapZoom
         });
-        let navigatorController = new mapboxgl.NavigationControl();
-        map.addControl(navigatorController, "top-left");
+        // let navigatorController = new mapboxgl.NavigationControl();
+        // map.addControl(navigatorController, "top-left");
         //利用一个GeoJSON对象来储存测量对象
         var geojson = {
           type: "FeatureCollection",
@@ -124,7 +177,7 @@
             filter: ["in", "$type", "Point"]
           });
           map.addLayer({
-            id: "measure-lines",
+            id: "距离分析",
             type: "line",
             source: "geojson",
             paint: {
@@ -137,7 +190,9 @@
             },
             filter: ["in", "$type", "LineString"]
           });
-          geojson.features.push(this.totalsceniclist);
+          console.log("geojsonfeatures")
+          console.log(this.selectedJSON.features)
+          geojson.features=geojson.features.concat(this.selectedJSON.features.geometry)
           if (geojson.features.length > 1) {
             linestring.geometry.coordinates = geojson.features.map(function (
               point
@@ -275,45 +330,7 @@
               .addTo(map);
           });
 
-          //多个图层
-          var toggleableLayerIds = [ '距离分析', '价格评分分析','人流量分析' ];
-          //显示图层的切换和选择
-          for (var i = 0; i < toggleableLayerIds.length; i++) {
-            var id = toggleableLayerIds[i];
-            var link = document.createElement('a');
-            //a标签的样式
-            Object.assign(link.style, {
-            fontSize: "13px",
-            color: "#404040",
-            display: "block",
-            margin:"0",
-            padding:"5px" ,
-            textDecoration: "none",
-            borderBottom: "1px solid rgba(0,0,0,0.25)",
-            textAlign: "center",
-            });
-            link.href = '#';
-            link.className = 'active';
-            link.textContent = id;
 
-            link.onclick = function (e) {
-              var clickedLayer = this.textContent;
-              e.preventDefault();
-              e.stopPropagation();
-
-              var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
-
-              if (visibility === 'visible') {
-                map.setLayoutProperty(clickedLayer, 'visibility', 'none');
-                this.className = '';
-              } else {
-                this.className = 'active';
-                map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
-              }
-            };
-            var layers = document.getElementById('menu');
-            layers.appendChild(link);
-          }
           map.on("wheel", function() {
             let range = map.getZoom();
             that.$store.commit("set_map_zoom", range);
@@ -328,7 +345,7 @@
           });
 
         });
-
+        this.map=map
       },
       methods: {
         refresh() {
@@ -336,34 +353,52 @@
           console.log("数据长度")
           console.log(this.totalsceniclist.length)
         },
-        async getAlLMyData(){
+        async getAlLMyData(){ //refresh级别
+          this.poidata=[]
           let list =this.$store.state.listToAnalysis
-          let queryString=""
-          for(let index = 0;index<list.length;index++){
-            if(index===0){
-              queryString=`(attraction_id=${list[index]})`
-            }else {
-              queryString=`${queryString} OR (attraction_id=${list[index]})`
+          if(list !== this.totalsceniclist){
+          if(list.length>0) {
+            let queryString = ""
+            for (let index = 0; index < list.length; index++) {
+              if (index === 0) {
+                queryString = `(attraction_id=${list[index]})`
+              } else {
+                queryString = `${queryString} OR (attraction_id=${list[index]})`
+              }
             }
-          }
-          let res = await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/attractions?fields=attraction_name,attraction_id,attraction_lon,attraction_lat&filter=${queryString}`,{
-            params:{
-              api_key:'956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
-            }
-          })
-          let data = res.data.resource
-          for (let i = 0; i < data.length; i++) {
-            this.poidata.push({
-              name:data[i].attraction_name,
-              id:data[i].attraction_id,
-              lngLat:[data[i].attraction_lon,data[i].attraction_lat]
+            let res = await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/attractions?fields=attraction_name,attraction_id,attraction_lon,attraction_lat&filter=${queryString}`, {
+              params: {
+                api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
+              }
             })
-          }
-          this.checkedList=list
-          console.log(list)
+            let data = res.data.resource
 
-        }
-      }
+            for (let i = 0; i < data.length; i++) {
+              this.poidata.push({
+                name: data[i].attraction_name,
+                id: data[i].attraction_id,
+                lon: data[i].attraction_lon,
+                lat: data[i].attraction_lat
+              })
+            }
+            this.checkedList = list
+            this.totalsceniclist=list
+            console.log(list)
+          }
+        }}
+      },
+      watch:{
+        checkedList(newValue,oldValue){
+          // let selecteddata=this.poidata.filter(x=>this.checkedList.indexOf(x.id)>-1)
+          // let geojsondata = GeoJSON.parse(selecteddata,{"Point":["lon","lat"],include:['name',"id"]})
+          // this.selectedJSON=geojsondata
+          // console.log(geojsondata)
+          // console.log(JSON.parse(JSON.stringify(geojsondata)))
+          // console.log(this.map.getSource("attractionlayer"))
+          // this.map.getSource("attractionlayer").setData(JSON.parse(JSON.stringify(geojsondata)))
+       }
+    }
+
    };
 
 
@@ -377,6 +412,8 @@
     bottom: 0;
     width: 100%;
   }
+
+
   #features{
     overflow: scroll;
     position: absolute;
@@ -391,12 +428,19 @@
     padding: 5px;
     height: fit-content;
     max-height: 70%;
+    scrollbar-width: none;
   }
+#features::-webkit-scrollbar {
+  display: none; /* Chrome Safari */
+}
+
   .poiInfo{
     margin: 12px 4px;
     padding: 2px;
     text-align: left;
   }
+
+
   body {
     margin: 0;
     padding: 0;
@@ -408,37 +452,42 @@
     z-index: 1;
     top: 10px;
     left: 50px;
-    border-radius: 3px;
+    border-radius: 12px;
     width: 100px;
-    border: 1px solid rgba(0,0,0,0.4);
+    /*border: 1px solid rgba(0,0,0,0.4);*/
     font-family: 'Open Sans', sans-serif;
-  }
-  #menu  a{
-    font-size: 13px;
-    color: #404040;
-    display: block;
-    margin: 0;
-    padding: 5px;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(0,0,0,0.25);
-    text-align: center;
+    backdrop-filter: blur(4px);
+    background-color: rgba(255,255,255,0.6);
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   }
 
-  #menu  a:last-child {
+  /*nav a{*/
+  /*  font-size: 5px;*/
+  /*  color: #404040;*/
+  /*  display: block;*/
+  /*  margin: 0;*/
+  /*  padding: 5px;*/
+  /*  text-decoration: none;*/
+  /*  border-bottom: 1px solid rgba(0,0,0,0.25);*/
+  /*  text-align: center;*/
+  /*}*/
+
+  #menu a:last-child {
     border: none;
   }
 
-  #menu  a:hover {
+  #menu a:hover {
     background-color: #f8f8f8;
     color: #404040;
   }
   /*a:active  !*表示鼠标长按下*!*/
-  #menu  a:active {
+  #menu a:active {
     background-color: #3887be;
     color: #ffffff;
   }
 
-  #menu  a:active:hover {
+  #menu a:active:hover {
     background: #3074a4;
   }
+
 </style>
