@@ -5,6 +5,7 @@ import login from "../view/login";
 import register from "../view/register";
 import home from "../view/home";
 import wode from "../components/son_components/wodetest"
+import jingdianfenxi from "../components/jingdianfenxi";
 Vue.use(VueRouter);
 
 export default new VueRouter({
@@ -35,7 +36,12 @@ export default new VueRouter({
     {
       path: "/wode",
       component: wode
+    },
+    {
+      path:"/test",
+      component:jingdianfenxi
     }
+
   ],
   mode: "history"
 });

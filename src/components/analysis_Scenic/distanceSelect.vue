@@ -1,9 +1,21 @@
 <template>
-  <div>
+  <div id="god">
     <div id="map"></div>
-    <el-row>
-      <el-button id="appendtolist" type="primary" plain @click="appendclick">添加至分析列表</el-button>
-    </el-row>
+    <div id="loading" ref="loading">
+      <span class="el-icon-loading"></span>
+    </div>
+    <div id="extended">
+      <button id="appendtolist" @click="appendclick">添加至分析列表</button>
+      <div id="buttonChoice">
+        <div class="button" v-for="dis in distance" :key="dis.name" @click="bufferradius=dis.value">
+          <span>{{button}}</span>
+        </div>
+        <div class="button">
+          <input v-model="customeDistance" @keydown.enter="Number(customeDistance)===(NaN|0)?alert('input valid value'):bufferradius=Number(ustomeDistance)"></input><label>自定义</label>
+          <span class="el-icon-check" @click="Number(customeDistance)===(NaN|0)?alert('input valid value'):bufferradius=Number(ustomeDistance)"></span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -21,21 +33,20 @@ Vue.use(VueComponentAPI);
 export default {
   name: "map",
   props: {
-    bufferradius: {
-      type: Number
-    }
+
   },
   data() {
     return {
-      ptswithcirdata:{}
+      ptswithcirdata:{},
+      bufferradius:1,
+      distance:[{name:"1km",value:1},{name:"5km",value:5},{name:"10km",value:10}],
+      customeDistance:null,
+
     };
   },
   components: {},
   mounted() {
     let that = this
-    this.$EventBus.$on("buffer_km", circlekm => {
-      this.bufferradius = circlekm;
-    });
     //实例化Map对象加载地图
     mapboxgl.accessToken =
       "pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ";
@@ -262,13 +273,56 @@ export default {
   top: 0;
   bottom: 0;
   width: 100%;
+  border-radius: 100px;
+  border: none;
 }
-#appendtolist {
+/*#appendtolist {*/
+/*  position: absolute;*/
+/*  z-index: 1;*/
+/*  top: 10px;*/
+/*  right: 10px;*/
+/*  border-radius: 3px;*/
+/*  width: 150px;*/
+/*}*/
+.button{
+  background-clip: border-box;
+  border-radius: 12px;
+  backdrop-filter: blur(3px);
+  background-color: rgba(255,255,255,0.8);
+  margin: 3px 3px;
+  padding: 3px;
+}
+button{
+  position: relative;
+  background-clip: border-box;
+  border-radius: 12px;
+  backdrop-filter: blur(3px);
+  background-color: rgba(255,255,255,0.8);
+  margin: 3px 3px;
+  padding: 6px;
+  border: none;
+  float: right;
+  font-weight: bold;
+  font-size: inherit;
+  font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;
+}
+#buttonChoice{
+  display: flex;
+  flex-wrap: wrap;
+}
+#extended{
+  width: 35%;
   position: absolute;
-  z-index: 1;
-  top: 10px;
-  right: 10px;
-  border-radius: 3px;
-  width: 150px;
+  top: 10%;
+  right: 3%;
+  z-index: 2;
+}
+#loading{
+  position: absolute;
+  left: 50%;
+  transform: scale(2);
+  top: 10%;
+  display: none;
+
 }
 </style>

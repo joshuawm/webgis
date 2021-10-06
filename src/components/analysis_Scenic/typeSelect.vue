@@ -1,9 +1,19 @@
 <template>
   <div>
     <div id="map"></div>
-    <el-row>
-      <el-button id="appendtolist" type="primary" plain @click="appendclick">添加至分析列表</el-button>
-    </el-row>
+    <div id="loading" ref="loading">
+      <span class="el-icon-loading"></span>
+    </div>
+    <div id="extended">
+      <button id="appendtolist" @click="appendclick">添加至分析列表</button>
+      <div id="buttonChoice">
+        <div class="button" v-for="button in buttons" :key="button" @click="choice(button)">
+          <span>{{button}}</span>
+        </div>
+      </div>
+    </div>
+
+
   </div>
 </template>
 
@@ -12,6 +22,8 @@ import Vue from "vue"
 import mapboxgl from "@mapgis/mapbox-gl";
 import jingdanimage from "../../assets/icon/jingdian32px.png"
 import popupComponets from "./scenicpop"
+import axios from "axios";
+import geojson from "geojson";
 const popup = Vue.extend(popupComponets);
 export default {
   name: "zhouyou",
@@ -19,7 +31,8 @@ export default {
     return {
       map: null,
       sourceID: "source_geojsonID",
-      typedata:{}
+      typedata:{},
+      buttons:["5A景区","4A景区","3A景区","自然","山水","文化","历史","展馆","休闲","运动","体验","儿童","城市","街区","民族","红色"]
     };
   },
   components: {
@@ -116,6 +129,46 @@ export default {
         that.$store.commit("set_map_center", c);
       });
     },
+    async choice(command) {
+      this.$refs.loading.style.display="block"
+      let url01 =
+        "http://121.5.235.15/api/v2/zhouyou/_table/Attractions?fields=*&filter=attraction_tags%20like%20%20%27";
+      var choiceurl = "";
+      if (
+        command === "5A景区" ||
+        command === "4A景区" ||
+        command === "3A景区"
+      ) {
+        choiceurl = url01 + "%25" + command + "%25" + "%27";
+      } else {
+        choiceurl = url01 + "%25" + command + "%25" + "%27";
+      }
+      let coordinateslist = [];
+      let geoclassify;
+      let response = await axios.get(choiceurl, {
+        params: {
+          api_key:
+            "956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0"
+        }
+      });
+      let classify_data = response.data.resource;
+      await classify_data.forEach(item =>
+        coordinateslist.push({
+          lng: item.attraction_lon,
+          lat: item.attraction_lat,
+          name: item.attraction_name,
+          addresss: item.attraction_city,
+          id: item.attraction_id
+        })
+      );
+      //coordinateslist每种类型的数据  坐标串的形式
+      geoclassify = await geojson.parse(coordinateslist, {
+        Point: ["lng", "lat"],
+        properties: ["name", "address","id"],
+      });
+      this.classchoice(geoclassify)
+      this.$refs.loading.style.display="none"
+    },
     classchoice(data) {
       if (this.map.getSource( "source_geojsonID")===undefined){
         setTimeout(()=>{this.map.getSource( "source_geojsonID")},100);
@@ -148,21 +201,53 @@ export default {
   height: 100%;
   pointer-events: all;
 }
-#appendtolist {
+/*#appendtolist {*/
+/*  position: absolute;*/
+/*  z-index: 1;*/
+/*  top: 10px;*/
+/*  right: 10px;*/
+/*  border-radius: 3px;*/
+/*  width: 150px;*/
+/*}*/
+.button{
+  background-clip: border-box;
+  border-radius: 12px;
+  backdrop-filter: blur(3px);
+  background-color: rgba(255,255,255,0.8);
+  margin: 3px 3px;
+  padding: 3px;
+}
+button{
+  position: relative;
+  background-clip: border-box;
+  border-radius: 12px;
+  backdrop-filter: blur(3px);
+  background-color: rgba(255,255,255,0.8);
+  margin: 3px 3px;
+  padding: 6px;
+  border: none;
+  float: right;
+  font-weight: bold;
+  font-size: inherit;
+  font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;
+}
+#buttonChoice{
+  display: flex;
+  flex-wrap: wrap;
+}
+#extended{
+  width: 35%;
   position: absolute;
-  z-index: 1;
-  top: 10px;
-  right: 10px;
-  border-radius: 3px;
-  width: 150px;
+  top: 10%;
+  right: 3%;
+  z-index: 2;
+}
+#loading{
+  position: absolute;
+  left: 50%;
+  transform: scale(2);
+  top: 10%;
+  display: none;
 
-}
-#boxchoice {
-  position: absolute;
-  left: 100px;
-  top: 79px;
-}
-#dtancechoice {
-  position: absolute;
 }
 </style>
