@@ -4,7 +4,7 @@ import VueRouter from "vue-router";
 import login from "../view/login";
 import register from "../view/register";
 import home from "../view/home";
-import wode from "../components/son_components/wodetest"
+import wode from "../components/wode"
 import jingdianfenxi from "../components/jingdianfenxi";
 Vue.use(VueRouter);
 

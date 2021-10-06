@@ -279,6 +279,8 @@ button{
   /* box-shadow: 0 0 0 2px rgb(0 0 0 / 10%); */
   display: flex;
   box-shadow: 0 0 0 2px rgb(0 0 0 / 0%);
+  border-radius: 0px;
+  background: transparent;
 
 }
 /deep/ .mapboxgl-ctrl-top-left .mapboxgl-ctrl {
@@ -300,6 +302,19 @@ button{
   height: 40px;
   width: 40px;
 }
-
-
+/deep/ .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon {
+  background-image: url("../../assets/icon/plus.svg");
+  background-size: cover;
+  transform: scale(0.3);
+}
+/deep/ .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon{
+  background-image: url("../../assets/icon/minus.svg");
+  background-size: cover;
+  transform: scale(0.3);
+}
+/deep/ .mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon{
+  background-image: url("../../assets/icon/compass.svg");
+  background-size: cover;
+  transform: scale(0.45) !important;
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div id="omiGod" :style="{ height: screenHeight }">
+  <div id="omiGod">
     <div
       class="finder"
       v-for="(finder, index) in Finders"
@@ -267,8 +267,9 @@ export default {
 <style scoped>
 #omiGod {
   height: 100%;
-  overflow-y: scroll;
+  overflow: scroll;
 }
+
 .finder {
   border-radius: 12px;
   backdrop-filter: blur(5px);

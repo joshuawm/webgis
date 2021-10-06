@@ -157,6 +157,7 @@ export default defineComponent({
 .poiSelectPanel{
 width: 130px;
 height: fit-content;
+  margin-left: 118px;
 }
 .analysisPanel{
   width: 130px;
@@ -181,6 +182,7 @@ height: fit-content;
   cursor:default;
   height: fit-content;
   padding: 10px;
+  width: fit-content;
 }
 .poiSelectPanel:hover .poiSelectHidden{
   display: block;

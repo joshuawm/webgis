@@ -253,4 +253,51 @@ export default {
 .basemapSwitch:hover .switchPanel {
   display: block;
 }
+/*controller叛变计划*/
+/deep/ .mapboxgl-control-container {
+  position: absolute;
+  right: 13.1%;
+}
+/deep/ .mapboxgl-ctrl-group:not(:empty) {
+  /* box-shadow: 0 0 0 2px rgb(0 0 0 / 10%); */
+  display: flex;
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0%);
+  border-radius: 0px;
+  background: transparent;
+
+}
+/deep/ .mapboxgl-ctrl-top-left .mapboxgl-ctrl {
+  margin: 0px;
+  float: left;
+}
+/deep/ .mapboxgl-ctrl-group button {
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  display: block;
+  padding: 0;
+  outline: none;
+  border: 0;
+  box-sizing: border-box;
+  background-color: transparent;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+}
+/deep/ .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon {
+  background-image: url("../../assets/icon/plus.svg");
+  background-size: cover;
+  transform: scale(0.3);
+}
+/deep/ .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-out .mapboxgl-ctrl-icon{
+  background-image: url("../../assets/icon/minus.svg");
+  background-size: cover;
+  transform: scale(0.3);
+}
+/deep/ .mapboxgl-ctrl button.mapboxgl-ctrl-compass .mapboxgl-ctrl-icon{
+  background-image: url("../../assets/icon/compass.svg");
+  background-size: cover;
+  transform: scale(0.45) !important;
+}
 </style>

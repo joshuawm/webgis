@@ -1,798 +1,915 @@
 <template>
   <div>
-<div class="oimiGod">
-  <div class="flex">
-            <div class="leftbox">
-            <!-- 用户信息展示区 -->
-            <div class="userbox">
-            <div :style="userInfoCom" class="userInfo">
-                    <p class="username">{{userInfo.user.userName}}</p>
-                    <p class="intro">当前您收藏景点共有<span class="numDisplay">{{userInfo.favorite.length}}</span>个</p>
-                    <p class="intro">收藏轨迹有<span class="numDisplay">{{userInfo.trace.length}}</span>个</p>
-            </div>
-            </div>
+    <div id="map"></div>
+    <div id="god">
+      <div id="headerFunctionZone">
+        <div id="youyustart">
+        <div>
+          <div id="functionZone" >
+            <span style="font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;margin:3px 20px;">{{userInfo.user.userName}}</span>
+            <span class="el-icon-notebook-2 funcButton" @click="myInfoActive=true;favorAndtraceActive=false;youyuActive=false;">我的信息</span>
+            <span class="el-icon-bell funcButton" @click="show_message">我的消息</span>
+            <span class="el-icon-star-off funcButton" @click="favorAndtraceActive=true;myInfoActive=false;youyuActive=false;">我的收藏</span>
+            <span class="el-icon-s-custom funcButton" @click="youyuActive=true;myInfoActive=false;favorAndtraceActive=false;">游友</span>
+          </div>
+        </div>
+        <div v-if="myInfoActive" id="myInfo">
+          <div>
+            <div style="text-align: right;margin-right: 20px;" ><span class="el-icon-circle-close" @click="myInfoActive=false;"></span></div>
+            <input v-model="userInfo.user.userName" disabled></input><br>
+            <input v-model="userInfo.user.userPhone" disabled ></input> <span class="el-icon-edit"></span><br>
+            <input v-model="userInfo.user.userEmail" disabled ></input> <span class="el-icon-edit"></span>
+          </div>
+        </div>
+      </div>
+      </div>
+        <div id="flexbaby">
+         <div id="rightall" ref="kongtiao">
+            <div v-if="favorAndtraceActive" id="favorAndtrace">
+        <div style="text-align: right;"><span class="el-icon-circle-close" style="margin-top: 1px;" @click="favorAndtraceActive=false;"></span></div>
+        <span style="margin-left: 5px;font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;">景点收藏</span>
+        <div class="favorite">
+          <div v-for="favor in userInfo.favorite">
+            <button class="favorButton" @click="goto(favor.lngLat)">{{favor.name}}</button>
+          </div>
+        </div>
+        <span style="margin-left: 5px;font-weight: bold;font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;">轨迹收藏</span>
+        <div class="trace">
+          <div v-for="trace in userInfo.trace">
+            <button class="traceButton" @click="goto(trace.trace[0])">{{trace.name}}</button>
+          </div>
+        </div>
+      </div>
+            <div id="rightDrag"  >
+                <div id="rightflex" >
+                    <div v-if="youyuActive" id="youyu">
+                      <div style="text-align: right;margin-right: 20px;" ></div>
+                      <div @mousedown="mouseDownHandleelse($event)" @mouseup="mouseUpHandleelse($event)"><el-row><el-col :span="12" ><div style="text-align: center" ><span @click="ybActive=true;xyActive=false;">游博</span></div></el-col><el-col :span="10" ><div  style="text-align: center"><span @click="xyActive=true;ybActive=false;">寻友</span></div></el-col><el-col :span="2"><span class="el-icon-circle-close" style="margin-top: 1px;" @click="youyuActive=false;"></span></el-col></el-row></div>
+                      <div class="content">
+                        <div  v-if="ybActive" id="yb">
+                          <div class="timeline">
+                            <timeline></timeline>
+                          </div>
+                        </div>
+                        <div v-if="xyActive" id="xy">
+                          <div class="xyclass"><find-friends></find-friends></div>
+                        </div>
+                      </div>
 
-            <!-- 收藏区 -->
-            <div class="favorbox">
-            <div class="favoritemaps">
-            <p>&nbsp;&nbsp;&nbsp;&nbsp;我的收藏</p>
-                <div class="buttons">
-                    <span v-for="favor in userInfo.favorite" :key="favor.name">
-                        <button class="button"   @click="pantoToThis(favor.lngLat,'favor');getAttractionData(favor.lngLat,favor.name)">{{favor.name}}</button>
-                    </span>
-                    <el-button @click="routeOptimize()" type="primary">获取路径规划</el-button>
-                    <el-button @click="cleanMarks()" type="primary">清除路径规划</el-button>
-                    
+                  </div>
+                    <div id="sendPanel">
+
+                    <el-row>
+                      <el-col :span="10"><div class="sendChoiceHidden"><span class="sendButtonChoice">游博</span></div></el-col>
+                      <el-col :span="4"><div class="sendButton" ><span style="transform: scale(2);" class="el-icon-circle-plus-outline"></span></div></el-col>
+                      <el-col :span="10"><div class="sendChoiceHidden"><span class="sendButtonChoice">游友</span></div></el-col>
+                    </el-row>
+
+                  </div>
                 </div>
-               
-            <div id="favoritemap">
-              <div id="instructions"></div>
+              </div>
 
-            </div>
-              
-            
-              <span>&nbsp;&nbsp;</span>
+      <!--    收藏与轨迹-->
 
-            </div>
-            </div>
-            </div>
+    </div>
+    <div id="leftall">
 
-            <!-- 轨迹区 -->
-            <div class="tracebox">
-            <div class="tracemaps">
-            <p>&nbsp;&nbsp;&nbsp;&nbsp;我的轨迹</p>
-            <span class="hideOver">{{traceDetail}}</span>
-                <div class="buttons">
-                    <span v-for="trace in userInfo.trace" :key="trace.name">
-                        <!-- <button round class="button" v-bind:style="trace.colorStyle" @click="pantoToThis(trace.trace[0],'trace')">{{trace.name}}</button> -->
-                        <button round class="button" @click="pantoToThis(trace.trace[0],'trace')">{{trace.name}}</button>
-                    </span>
-                    <br>
-                  <el-button type="text"  @click="traceDetailfunc" >{{traceDetail.desc}}</el-button>
-                  <p v-if="traceDetail.traceActive" class="traceDetailStyle">{{traceDetail.traceDetail}}</p>
+
+
+    </div>
+      <div id="dialog">
+        <el-dialog
+          :modal="false"
+          :visible.sync="dialogVisible_message"
+          width="20%"
+          title="消息"
+        >
+          <div>
+            <el-tabs
+              id="message_dialog"
+              v-model="activeName_message"
+              @tab-click="handleClick_message"
+              :stretch="true"
+              center="true"
+            >
+              <el-tab-pane label="我收到的" name="1">
+                <div >
+                  <span v-if="get_messages.length === 0">这里空空如也</span>
+                  <div v-if="get_messages.length !== 0">
+                    <div
+                      class="getMessage messagePanel"
+                      v-for="(message, index) in get_messages"
+                      :key="message.xyhf_content"
+                      @click="readit(index)"
+                    >
+                      <el-row
+                      ><el-col :span="12"
+                      ><span style="font-size:18px;font-weight:bold;"
+                      ><span style="font-size:8px;">From: </span
+                      >{{ message.user_name }}</span
+                      ></el-col
+                      >
+                        <el-col :span="8"
+                        ><span
+                          style="font-size:8px;font-weight:lighter;"
+                        >{{
+                            new Date(Number(message.xyhf_date)).Format(
+                              "yy-MM-dd hh:mm"
+                            )
+                          }}</span
+                        ></el-col
+                        >
+                        <el-col :span="4"
+                        ><span style="right:10%;"
+                        ><el-badge
+                          v-if="message.xyhf_is_read === 1"
+                          value="new"
+                        ></el-badge></span></el-col
+                        ></el-row>
+                      <p style="font-size:16px;margin:3px 8px;">
+                        {{ message.xyhf_content }}
+                      </p>
+                      <div>
+                            <span class="el-icon-phone"></span
+                            ><span>{{ message.user_phone }}</span
+                      ><br />
+                        <span class="el-icon-s-comment"></span
+                        ><span>{{ message.user_email }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </el-tab-pane>
+              <el-tab-pane label="我发送的" name="2">
+                <div >
+                      <span v-if="send_messages.length === 0"
+                      >什么消息也没有</span
+                      >
+                  <div v-if="send_messages.length !== 0">
+                    <div
+                      class="sendMessage messagePanel"
+                      v-for="message in send_messages"
+                      :key="message.xyhf_content"
+                    >
+                      <el-row
+                      ><el-col :span="20"
+                      ><span style="font-size:18px;font-weight:bold;"
+                      ><span style="font-size:8px;">To: </span
+                      >{{ message.user_name }}</span
+                      ></el-col
+                      ></el-row
+                      >
+                      <p style="font-size:16px;margin:3px 8px;">
+                        {{ message.xyhf_content }}
+                      </p>
+                      <el-row>
+                        <el-col :span="20"
+                        ><span
+                          style="font-size:8px;font-weight:lighter;"
+                        >{{
+                            new Date(Number(message.xyhf_date)).Format(
+                              "yy-MM-dd hh:mm"
+                            )
+                          }}</span
+                        ></el-col
+                        >
+                      </el-row>
+                    </div>
+                  </div>
+                </div>
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+        </el-dialog>
+      </div>
 
-            <div id="tracemap"></div>
-            <span>&nbsp;&nbsp;</span>
-            </div>
-            </div>
-</div>
-</div>
+    </div>
+  </div>
+
   </div>
 </template>
 
 <script>
-import mapboxgl from "@mapgis/mapbox-gl"
-import geojson from "geojson"
-import axios from "axios"
-import randomColor from "randomcolor"
-import walkman from "../assets/icon/arrow-right32px.png"
-import mapMarker from "../assets/icon/map-marker.png"
+import mapboxgl from "@mapgis/mapbox-gl";
+import axios from "axios";
+import geojson from "geojson";
+import randomColor from "randomcolor";
+import walkman from "../assets/icon/arrow-right32px.png";
+import timeline from "./son_components/timelineyb";
+import findFriends from "./son_components/findFriends";
 
 export default {
-name:"wode",
-components:{
-},
-mounted(){
-    this.userID=this.$store.state.user_id
-    console.log(this.userID)
-    this.initialMap("tracemap")
-    this.initialMap("favoritemap")
-    this.initialUserInfo()
-},
-data(){
-    return {
-        favormap:undefined,
-        tracemap:undefined,
-        traceDetail:{
-          desc:"轨迹详情",
-          traceDetail:"",
-          traceActive:false
-        },
-        userInfo:{
-            user:{
-              userName:"Joshua"
-            },
-            favorite:[
-                {
-                    name:"武汉大学",
-                    lngLat:[114.405906,30.534768]
-                }
-            ],
-            trace:[
-                {
-                    name:"trace1",
-                    trace:[140,30]
-                }
-            ]
-        },
-        backPic:null,
-        //下面是PX新增的
-        pointArray:[],//路径规划的数组
-        routeOrder:"",//路径规划后的路径顺序
-        start:{},//路径规划的起点
-        end:{},//路径规划的终点
-        clikTimes:0,//点击次数
-        favoriteMarks:[],//将Mark存入数组便于清除
-    }
-},
+ name:"newWode",
+  components:{
+   timeline,
+    findFriends
+  },
+  data(){
+   return{
+     map:null,
+     userInfo:{
+       user:{
+         userName:"Joshua"
+       },
+       favorite:[
+         {
+           name:"武汉大学",
+           lngLat:[114.405906,30.534768]
+         }
+       ],
+       trace:[
+         {
+           name:"trace1",
+           trace:[140,30]
+         }
+       ]
+     },
+     traceDetail:{
+       desc:"轨迹详情",
+       traceDetail:"",
+       traceActive:false
+     },
+     backPic:null,
+     userID:null,
+     xyActive:true,
+     ybActive:false,
+     youyuActive:true,
+     favorAndtraceActive:false,
+     myInfoActive:false,
+     moveDataelse: {
+       x: null,
+       y: null
+     },
+     activeName: "1",
+     activeName_message: "1",
+     dialogImageUrl: "",
+     dialogVisible: false,
+     visible: false,
+     visible_xy: false,
+     yb_content: "发布游博",
+     textarea1: "",
+     textarea2: "",
+     disabled: false,
+     youbo_time: null,
+     have_files: false,
+     xy_content: "发布寻友",
+     winwidth: document.documentElement.clientWidth + "px",
+     winheight: document.documentElement.clientHeight + "px",
+     dialogVisible_message: false,
+     send_messages: [],
+     get_messages: []
 
-methods:{
-    async initialMap(containerID){
-        let mapInfo={
-            container:containerID,
-            style:"mapbox://styles/joshuamwong/ckte9azm523g217juhpczqo5q",
-            center:[114.405906,30.534768],
-            zoom:12,
-            attributionControl: false
-        }
-        mapboxgl.accessToken ="pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ"
 
-        if(containerID==="tracemap"){
-            mapInfo.container=containerID
-            this.tracemap = new mapboxgl.Map(mapInfo)
-        }else if(containerID==="favoritemap"){
-            mapInfo.container="favoritemap"
-            this.favormap=new mapboxgl.Map(mapInfo)
-            this.favormap.loadImage(mapMarker,(error,image)=>{
-              if(error){console.log("load images failed")}
-              this.favormap.addImage("marker",image)
-          })
-        }
+   }
+  },
+ async mounted() {
+   //bug 用户id不正确
+   this.userID=await this.$store.state.user_id
 
-    },
-    //To Do
-    async renderMap(geojson){
-        this.map.addSource("geosource",{
-            type:geojson,
-            data:geojson
-        })
-    },
-    async pantoToThis(lngLat,type){
-      console.log(lngLat)
-        if(type==="favor"){
-            this.favormap.flyTo({
-                center:lngLat,
-                zoom:14
-            })
-        }else if(type==="trace"){
-            this.tracemap.flyTo({
-                center:lngLat,
-                zoom:8
-            })
-          let result = this.userInfo.trace.filter(theTrace=>theTrace.trace[0]===lngLat)
-          if(result.length>0){
-            this.traceDetail.traceDetail=result[0].attr_names.join("==>")
-          }
-        }
-
-    },
+   //initialMap
+   mapboxgl.accessToken ="pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ"
+  this.map=await new mapboxgl.Map({
+    container:"map",
+    style:"mapbox://styles/joshuamwong/ckte9azm523g217juhpczqo5q",
+    center:[114.405906,30.534768],
+    zoom:12,
+    attributionControl: false
+  })
+   this.initialUserInfo()
+   this.get_data_messages()
+ },
+  methods:{
     async initialUserInfo(){
-        //杂项
-        //杂项-用户名
-        let ress = await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/users?fields=*&filter=user_id=${this.userID}`,{
-          params: {
-            api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
-          }
-        })
-        this.userInfo.user={
-          userName:ress.data.resource[0].user_name,
-          userPhone:ress.data.resource[0].user_phone,
-          userEmail:ress.data.resource[0].user_email
+      //杂项
+      //杂项-用户名
+        //bug
+      let ress = await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/users?fields=*&filter=user_id=2`,{
+        params: {
+          api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
         }
-        // this.backPic="https://api.mapbox.com/styles/v1/joshuamwong/cku82uhhz09k018pdij5r2ml5/static/geojson({\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.3718,30.5702]},\"properties\":{\"attraction_id\":151,\"attraction_name\":\"湖北美术馆\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.4132,30.5467]},\"properties\":{\"attraction_id\":191,\"attraction_name\":\"东湖梅园\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.3543,30.558]},\"properties\":{\"attraction_id\":239,\"attraction_name\":\"汉秀剧场\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.429948,30.550553]},\"properties\":{\"attraction_id\":243,\"attraction_name\":\"武汉植物园\"}}]})/auto/445x204?access_token=pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ"
+      })
+      console.log(ress)
+      this.userInfo.user={
+        userName:ress.data.resource[0].user_name,
+        userPhone:ress.data.resource[0].user_phone,
+        userEmail:ress.data.resource[0].user_email
+      }
+      // this.backPic="https://api.mapbox.com/styles/v1/joshuamwong/cku82uhhz09k018pdij5r2ml5/static/geojson({\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.3718,30.5702]},\"properties\":{\"attraction_id\":151,\"attraction_name\":\"湖北美术馆\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.4132,30.5467]},\"properties\":{\"attraction_id\":191,\"attraction_name\":\"东湖梅园\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.3543,30.558]},\"properties\":{\"attraction_id\":239,\"attraction_name\":\"汉秀剧场\"}},{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[114.429948,30.550553]},\"properties\":{\"attraction_id\":243,\"attraction_name\":\"武汉植物园\"}}]})/auto/445x204?access_token=pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ"
 
-        //收藏景点-请求数据
-        let resfavor = await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/attraction_favorites?fields=*&filter=user_id=${this.userID}`,{
-          params: {
-            api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
-          }
-        })
-        let attraction_id=resfavor.data.resource.map(x=>x.attraction_id)
-        console.log(attraction_id)
-        // let attraction_id=[1,2,3,4,5,6,7,8,9]
+      //收藏景点-请求数据
+        //bug
+      let resfavor = await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/attraction_favorites?fields=*&filter=user_id=2`,{
+        params: {
+          api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
+        }
+      })
+      let attraction_id=resfavor.data.resource.map(x=>x.attraction_id)
+      console.log(attraction_id)
+      // let attraction_id=[1,2,3,4,5,6,7,8,9]
 
-        //轨迹-请求数据
-          //存储整个轨迹的数据
-        let traceList=[]
+      //轨迹-请求数据
+      //存储整个轨迹的数据
+      let traceList=[]
       //游博轨迹
-        let traceyb= await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/yb?fields=attraction_id&filter=user_id=${this.userID}`,{
-          params: {
-            api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
+        //bug
+      let traceyb= await axios.get(`http://121.5.235.15/api/v2/zhouyou/_table/yb?fields=attraction_id&filter=user_id=2`,{
+        params: {
+          api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
+        }
+      })
+
+      let ybTraceID = await traceyb.data.resource.map(x=>x.attraction_id)
+      let ybTrace ={trace:ybTraceID,name: "游博轨迹"}
+      traceList.push(ybTrace)
+
+      // let traceList = [
+      //     {trace:[63,79,86,78,95,58],name:"trace1"},
+      //     {trace:[1,2,3,4,5,6,7],name:"trace2"},
+      //     {trace:[382,455,298,292,343,481],name:"trace3"}
+      // ]
+
+      //汇总两者的数据,减小请求次数
+      let theID = attraction_id
+      for (let index = 0;index < traceList.length;index++){
+        theID=theID.concat(traceList[index].trace)
+      }
+      //去重重复ID
+      theID = Array.from(new Set(theID))
+
+      let filter = theID.map((x)=>{
+        return `(attraction_id = ${x})`
+      })
+      //获得数据
+      let filterURL=encodeURIComponent(filter.join(" OR "))
+      let requestsURL= `http://121.5.235.15/api/v2/zhouyou/_table/Attractions?fields=attraction_name,attraction_id,attraction_lat,attraction_lon&filter=${filterURL}`
+
+      let res = await axios.get(requestsURL,{
+        params:{
+          api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
+        }
+      })
+      let data = await res.data.resource
+      if(data !== undefined){
+        //数据分流-收藏景点
+        let favordata = data.filter((x)=>{
+          if(attraction_id.indexOf(x.attraction_id) > -1){
+            return true
           }
         })
-
-        let ybTraceID = await traceyb.data.resource.map(x=>x.attraction_id)
-        let ybTrace ={trace:ybTraceID,name: "游博轨迹"}
-        traceList.push(ybTrace)
-
-        // let traceList = [
-        //     {trace:[63,79,86,78,95,58],name:"trace1"},
-        //     {trace:[1,2,3,4,5,6,7],name:"trace2"},
-        //     {trace:[382,455,298,292,343,481],name:"trace3"}
-        // ]
-
-        //汇总两者的数据,减小请求次数
-        let theID = attraction_id
-        for (let index = 0;index < traceList.length;index++){
-            theID=theID.concat(traceList[index].trace)
+        for (let indexx =0 ;indexx<favordata.length;indexx++){
+          favordata[indexx].attraction_lon=parseFloat(favordata[indexx].attraction_lon).toFixed(4)
+          favordata[indexx].attraction_lat=parseFloat(favordata[indexx].attraction_lat).toFixed(4)
         }
-        //去重重复ID
-        theID = Array.from(new Set(theID))
-
-        let filter = theID.map((x)=>{
-            return `(attraction_id = ${x})`
+        //生成按钮-收藏景点
+        this.userInfo.favorite=favordata.map((x)=>{
+          return {
+            name:x.attraction_name,
+            id:x.attraction_id,
+            lngLat:[parseFloat(x.attraction_lat).toFixed(4),parseFloat(x.attraction_lon).toFixed(4)]
+          }
         })
-        //获得数据
-        let filterURL=encodeURIComponent(filter.join(" OR "))
-        let requestsURL= `http://121.5.235.15/api/v2/zhouyou/_table/Attractions?fields=attraction_name,attraction_id,attraction_lat,attraction_lon&filter=${filterURL}`
+        console.log(favordata)
+        //生成GeoJosn-收藏景点
+        let pointGeoJSON= await geojson.parse(favordata,{Point:["attraction_lon","attraction_lat"],include:["attraction_id","attraction_name"]})
+        let pointGeoJSONback= await geojson.parse(favordata,{Point:["attraction_lon","attraction_lat"],include:[]})
 
-        let res = await axios.get(requestsURL,{
-            params:{
-                api_key: '956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0'
-            }
-        })
-        let data = await res.data.resource
-        if(data !== undefined){
-            //数据分流-收藏景点
-            let favordata = data.filter((x)=>{
-              if(attraction_id.indexOf(x.attraction_id) > -1){
-                    return true
-                }
+        //数据分流-轨迹显示
+        let temp
+        let tempp
+        let names
+        //轨迹中的景点数据存储
+        let tracePOI=[]
+        for (let i = 0 ;i < traceList.length;i++){
+          tempp=[]
+          names=[]
+          for (let j = 0;j<traceList[i].trace.length;j++){
+            //获取所需景点id
+            temp = data.filter((x)=>{
+              return x.attraction_id===traceList[i].trace[j]
             })
-            for (let indexx =0 ;indexx<favordata.length;indexx++){
-              favordata[indexx].attraction_lon=parseFloat(favordata[indexx].attraction_lon).toFixed(4)
-              favordata[indexx].attraction_lat=parseFloat(favordata[indexx].attraction_lat).toFixed(4)
-            }
-            //生成按钮-收藏景点
-            this.userInfo.favorite=favordata.map((x)=>{
-                return {
-                    name:x.attraction_name,
-                    id:x.attraction_id,
-                    lngLat:[parseFloat(x.attraction_lat).toFixed(4),parseFloat(x.attraction_lon).toFixed(4)]
-                }
+            names.push(temp[0].attraction_name)
+            tempp.push([temp[0].attraction_lat,temp[0].attraction_lon])
+            tracePOI.push({
+              name:temp[0].attraction_name,
+              id:temp[0].attraction_id,
+              attraction_lat:temp[0].attraction_lat.toFixed(4),
+              attraction_lon:temp[0].attraction_lon.toFixed(4)
             })
-            //生成GeoJosn-收藏景点
-            let pointGeoJSON= await geojson.parse(favordata,{Point:["attraction_lon","attraction_lat"],include:["attraction_id","attraction_name"]})
-            let pointGeoJSONback= await geojson.parse(favordata,{Point:["attraction_lon","attraction_lat"],include:[]})
-
-            //数据分流-轨迹显示
-            let temp
-            let tempp
-            let names
-            //轨迹中的景点数据存储
-            let tracePOI=[]
-            for (let i = 0 ;i < traceList.length;i++){
-                tempp=[]
-                names=[]
-                  for (let j = 0;j<traceList[i].trace.length;j++){
-                      //获取所需景点id
-                      temp = data.filter((x)=>{
-                           return x.attraction_id===traceList[i].trace[j]
-                      })
-                      names.push(temp[0].attraction_name)
-                      tempp.push([temp[0].attraction_lat,temp[0].attraction_lon])
-                      tracePOI.push({
-                        name:temp[0].attraction_name,
-                        id:temp[0].attraction_id,
-                        attraction_lat:temp[0].attraction_lat.toFixed(4),
-                        attraction_lon:temp[0].attraction_lon.toFixed(4)
-                      })
-                  }
-                  if(tempp !== []){
-                      traceList[i].trace=tempp
-                      traceList[i].color=randomColor({luminosity:"dark"})
-                      traceList[i].colorStyle={"background-color":traceList[i].color}
-                      traceList[i].attr_names=names
-                  }
-            }
-            this.userInfo.trace=traceList
-            //生成轨迹-GeoJSON
-            let traceGeoJSON=geojson.parse(traceList,{LineString:"trace",include:["color"]})
-            let traceGeoJSONback=geojson.parse(traceList,{LineString:"trace",include:[]})
-            //轨迹景点-GeoJSON
-            let POIGeoJSON=geojson.parse(tracePOI,{Point:["attraction_lon","attraction_lat"],include:["id","name"]})
-            //轨迹显示
-
-            //杂项-背景图片的生成
-            let backGroundGeoJSON={
-                "type": "FeatureCollection",
-                "features": []
-            }
-            let newtraceFeature=traceGeoJSONback.features.filter(x=>x.geometry.coordinates.length>1)
-            if(newtraceFeature.length>=1){
-                backGroundGeoJSON.features=pointGeoJSONback.features.concat(newtraceFeature)
-            }else{
-                backGroundGeoJSON.features=pointGeoJSONback.features
-            }          
-            console.log(backGroundGeoJSON)
-            let tem=JSON.stringify(backGroundGeoJSON)
-            this.backPic=`https://api.mapbox.com/styles/v1/joshuamwong/cku82uhhz09k018pdij5r2ml5/static/geojson(${tem})/auto/440x200?access_token=pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ`
-            this.favormap.on("load",()=>{
-                this.favormap.addLayer({
-                    id: "favorLayer",
-                    type: "symbol",
-                    source: {
-                        type:"geojson",
-                        data:pointGeoJSON
-                    },
-                    layout: {
-                    "text-field": "{attraction_name}",
-                    "text-anchor": "right",
-                    'text-font': ['Open Sans Bold'],
-                    "text-line-height": 1.2,
-                    "text-size": 12,
-                    "text-offset":[-1,0],
-                    "icon-image": "marker"
-                    }
-                })
-        })
-            console.log(traceGeoJSON)
-            this.tracemap.on("load",()=>{
-                this.tracemap.addLayer({
-                    id:"traceLayer",
-                    type:"line",
-                    source:{
-                        type:"geojson",
-                        data:traceGeoJSON,
-                        lineMetrics: true
-                    },
-                    layout: {
-                        'line-join': 'round',
-                        'line-cap': 'round'
-                        },
-                    // paint: {
-                    //     'line-color': ['get','color'],
-                    //     'line-width': 2
-                    //     }
-                    paint: {
-                    'line-color': 'red',
-                    'line-width': 4,
-                    // 'line-gradient' must be specified using an expression
-                    // with the special 'line-progress' property
-                    'line-gradient': [
-                      'interpolate',
-                      ['linear'],
-                      ['line-progress'],
-                      0, "blue",
-                      0.1, "royalblue",
-                      0.3, "cyan",
-                      0.5, "lime",
-                      0.7, "yellow",
-                      1, "red"
-                    ]
-                  }
-                })
-
-              this.tracemap.addLayer({
-                id:"POI",
-                type:"symbol",
-                source:{
-                  type:"geojson",
-                  data:POIGeoJSON
-                },
-                layout: {
-                  "text-field": "{name}",
-                  "text-anchor": "right",
-                  'text-font': ['Open Sans Bold'],
-                  "text-line-height": 1.2,
-                  "text-size": 6,
-                  "text-offset":[-1,0],
-                }
-              })
-              this.tracemap.loadImage(walkman,(error,image)=>{
-                if(error){console.log(error)}
-                else {
-                  this.tracemap.addImage("walkman", image)
-                  this.tracemap.addLayer({
-                    id:"arrow",
-                    type:"symbol",
-                    source:{
-                      type:"geojson",
-                      data:traceGeoJSON
-                    },
-                    layout:{
-                      "symbol-placement":"line",
-                      "symbol-spacing":50,
-                      "icon-image":"walkman",
-                      "icon-size":0.3
-                    }
-
-                  })
-                }
-              })
-
-            })
-
-            //初始化一个路线详情
-            let l= Array.from(new Set(this.userInfo.trace[0].attr_names))
-            this.traceDetail.traceDetail=l.join("==>")
+          }
+          if(tempp !== []){
+            traceList[i].trace=tempp
+            traceList[i].color=randomColor({luminosity:"dark"})
+            traceList[i].colorStyle={"background-color":traceList[i].color}
+            traceList[i].attr_names=names
+          }
         }
-
+        this.userInfo.trace=traceList
+        //生成轨迹-GeoJSON
+        let traceGeoJSON=geojson.parse(traceList,{LineString:"trace",include:["color"]})
+        let traceGeoJSONback=geojson.parse(traceList,{LineString:"trace",include:[]})
+        //轨迹景点-GeoJSON
+        let POIGeoJSON=geojson.parse(tracePOI,{Point:["attraction_lon","attraction_lat"],include:["id","name"]})
         //轨迹显示
 
+        //杂项-背景图片的生成
+        let backGroundGeoJSON={
+          "type": "FeatureCollection",
+          "features": []
+        }
+        let newtraceFeature=traceGeoJSONback.features.filter(x=>x.geometry.coordinates.length>1)
+        if(newtraceFeature.length>=1){
+          backGroundGeoJSON.features=pointGeoJSONback.features.concat(newtraceFeature)
+        }else{
+          backGroundGeoJSON.features=pointGeoJSONback.features
+        }
+        console.log(backGroundGeoJSON)
+        let tem=JSON.stringify(backGroundGeoJSON)
+        this.backPic=`https://api.mapbox.com/styles/v1/joshuamwong/cku82uhhz09k018pdij5r2ml5/static/geojson(${tem})/auto/440x200?access_token=pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ`
+        console.log(this.userInfo)
+        console.log(pointGeoJSON)
+        this.map.on("load",()=>{
+          this.map.addLayer({
+            id: "favorLayer",
+            type: "symbol",
+            source: {
+              type:"geojson",
+              data:pointGeoJSON
+            },
+            layout: {
+              "text-field": "{attraction_name}",
+              "text-anchor": "right",
+              'text-font': ['Open Sans Bold'],
+              "text-line-height": 1.2,
+              "text-size": 12,
+              "text-offset":[-1,0],
+            }
+          })
+        })
 
 
 
+        //初始化一个路线详情
+        let l= Array.from(new Set(this.userInfo.trace[0].attr_names))
+        this.traceDetail.traceDetail=l.join("==>")
+      }
+
+      //轨迹显示
     },
-    traceDetailfunc(){
-      this.traceDetail.traceActive = !this.traceDetail.traceActive
+    goto(lngLat){
+      this.map.flyTo({
+        center:lngLat
+        // zoom:14
+      })
     },
-
-    //获取路径优化
-    routeOptimize() {
-      //路径规划API函数，得到一个规划后的路径顺序
-      function RouteXL_API_Connector() {
-        this.tour = function(locations, success_callback, error_callback) {
-          // Init the request object
-          var httpRequest = new XMLHttpRequest();
-          if (!httpRequest) {
-            alert("Cannot create an XMLHttpRequest instance");
-            return false;
+    mouseDownHandleelse (event) {
+      this.moveDataelse.x = event.pageX - this.$refs.kongtiao.offsetLeft
+      this.moveDataelse.y = event.pageY - this.$refs.kongtiao.offsetTop
+      event.currentTarget.style.cursor = 'move'
+      window.onmousemove = this.mouseMoveHandleelse
+    },
+    mouseMoveHandleelse (event) {
+      let moveLeft = event.pageX - this.moveDataelse.x + 'px'
+      let moveTop = event.pageY - this.moveDataelse.y + 'px'
+      this.$refs.kongtiao.style.left = moveLeft
+      this.$refs.kongtiao.style.top = moveTop
+    },
+    mouseUpHandleelse (event) {
+      window.onmousemove = null
+      event.currentTarget.style.cursor = 'move'
+      console.log('鼠标松开了')
+    },
+    handleClick_message() {
+      this.get_data_messages();
+    },
+    async get_data_messages() {
+      let get_messages = null
+      let send_messages = null
+      let that = this;
+      let get_url = `http://121.5.235.15/api/v2/zhouyou/_table/xunyou_huifu?order=xyhf_date%20DESC&filter=(xyhf_user_id_ed=${that.$store.state.user_id})`;
+      let send_url = `http://121.5.235.15/api/v2/zhouyou/_table/xunyou_huifu?order=xyhf_date%20DESC&filter=(xyhf_user_id=${that.$store.state.user_id})`;
+      let p = {
+        params: {
+          api_key:
+            "956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0"
+        }
+      };
+      let r01 = await axios.get(get_url, p);
+      get_messages = await r01.data.resource;
+      for (let i = 0; i < that.get_messages.length; i++) {
+        let url = `http://121.5.235.15/api/v2/zhouyou/_table/users/${that.get_messages[i].xyhf_user_id}?fields=user_name%2Cuser_phone%2Cuser_email`;
+        let r02 = await axios.get(url, p);
+        get_messages[i].user_name = r02.data.user_name;
+        get_messages[i].user_phone = r02.data.user_phone;
+        get_messages[i].user_email = r02.data.user_email;
+      }
+      let r03 = await axios.get(send_url, p);
+      send_messages = await r03.data.resource;
+      for (let i = 0; i < that.send_messages.length; i++) {
+        let url = `http://121.5.235.15/api/v2/zhouyou/_table/users/${that.send_messages[i].xyhf_user_id_ed}?fields=user_name`;
+        let r04 = await axios.get(url, p);
+        send_messages[i].user_name = r04.data.user_name;
+      }
+      this.get_messages = get_messages
+      this.send_messages = send_messages
+    },
+    show_message() {
+      this.dialogVisible_message = true;
+      this.get_data_messages();
+    },
+    fabu() {
+      let that = this;
+      if (
+        that.textarea2 === "" &&
+        that.$store.state.xyjingdianID.length === 0
+      ) {
+        this.$message({
+          message: "位置或文本不可为空",
+          type: "warning"
+        });
+      } else {
+        let xys = {
+          resource: {
+            xy_user_id: that.$store.state.user_id,
+            xy_content: that.textarea2,
+            xy_attractions: JSON.stringify({
+              resource: that.$store.state.xyjingdianID
+            }),
+            date: Date.parse(new Date()).toString()
           }
-
-          // Set up the request and send it
-          httpRequest.open("POST", "https://api.routexl.com/tour");
-          httpRequest.setRequestHeader(
-            "Content-Type",
-            "application/x-www-form-urlencoded"
-          );
-          httpRequest.setRequestHeader(
-            "Authorization",
-            "Basic " + btoa("pangxiang:Pang2076529+..")
-          );
-          var params = "locations=" + JSON.stringify(locations);
-          httpRequest.send(params);
-
-          // Receive the response
-          httpRequest.onreadystatechange = function() {
-            if (httpRequest.readyState === XMLHttpRequest.DONE) {
-              if (httpRequest.status === 200) {
-                success_callback(httpRequest.responseText);
-              } else {
-                error_callback(httpRequest.responseText);
-              }
+        };
+        let p = {
+          params: {
+            api_key:
+              "956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0"
+          }
+        };
+        axios
+          .post("http://121.5.235.15/api/v2/zhouyou/_table/xunyou", xys, p)
+          .then(r => {
+            that.$store.commit("remove_xy_data");
+            that.shows_xy();
+            that.textarea2 = "";
+            setTimeout(() => {
+              that.$refs.xy.initial();
+            }, 100);
+          })
+          .catch(r => {});
+      }
+    },
+    before_upload: function(file) {
+      if (file) {
+        this.have_files = true;
+      }
+    },
+    success_handle: function(res) {
+      if (res["on_off"] !== false) {
+        let imgname =
+          res["files"][0]["path"] +
+          "." +
+          res["files"][0]["originalname"].split(".").pop();
+        let yb = {
+          resource: {
+            attraction_id: this.$store.state.jingdianID,
+            user_id: this.$store.state.user_id,
+            yb_content: this.textarea1,
+            yb_imgs: imgname,
+            yb_date: this.youbo_time.toString()
+          }
+        };
+        let p = {
+          params: {
+            api_key:
+              "956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0"
+          }
+        };
+        console.log('yb')
+        console.log(yb)
+        axios
+          .post("http://121.5.235.15/api/v2/zhouyou/_table/yb", yb, p)
+          .then(function(resp) {})
+          .catch(function(resp) {});
+      } else {
+        this.$message({
+          message: "发布失败",
+          type: "error"
+        });
+      }
+      setTimeout(() => this.$refs.timeline.initialData(), 100);
+    },
+    handleClick: function(tab, event) {
+      this.$refs.xy.initial();
+      this.$refs.timeline.initialData();
+    },
+    handleRemove(file) {
+      let uploadFiles = this.$refs.upload.uploadFiles;
+      for (let i = 0; i < uploadFiles.length; i++) {
+        if (uploadFiles[i]["url"] === file.url) {
+          uploadFiles.splice(i, 1);
+        }
+      }
+    },
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    submitUpload() {
+      this.youbo_time = Date.parse(new Date());
+      if (this.$store.state.jingdianID !== null && this.textarea1 !== "") {
+        this.$refs.upload.submit();
+        if (this.have_files) {
+          this.have_files = false;
+          setTimeout(() => {
+            this.$refs.upload.clearFiles();
+            this.textarea1 = "";
+            this.shows();
+          }, 100);
+        } else {
+          // 没有图片
+          let yb = {
+            resource: {
+              attraction_id: this.$store.state.jingdianID,
+              user_id: this.$store.state.user_id,
+              yb_content: this.textarea1,
+              yb_date: this.youbo_time.toString()
             }
           };
-        };
-      }
-      //根据输入的景点顺序获取路径数据，并画线
-      async function getRoute(point_data, map) {//point_data是坐标字符串,map是地图
-        // make a directions request using cycling profile
-
-        const query = await fetch(
-          `https://api.mapbox.com/directions/v5/mapbox/driving/${point_data}?steps=true&geometries=geojson&language=zh-Hans&access_token=${mapboxgl.accessToken}`,
-
-          { method: "GET" }
-        );
-        const json = await query.json();
-        const data = json.routes[0];
-        const route = data.geometry.coordinates;
-        const geojson = {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "LineString",
-            coordinates: route
-          }
-        };
-
-        // if the route already exists on the map, we'll reset it using setData
-        //先查询是否已经存在"route"图层，如果已经存在，通过getSource.setData来发送数据；若未存在，直接创建该图层
-
-        if (map.getSource("Point_Source")) {
-          map.getSource("Point_Source").setData(geojson);
+          let p = {
+            params: {
+              api_key:
+                "956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0"
+            }
+          };
+          axios
+            .post("http://121.5.235.15/api/v2/zhouyou/_table/yb", yb, p)
+            .then(function(resp) {})
+            .catch(function(resp) {});
+          this.textarea1 = "";
+          this.shows();
         }
-        // otherwise, we'll make a new request
-        else {
-          map.addSource("Point_Source", {
-            type: "geojson",
-            data: geojson
-          }),
-            map.addLayer({
-              id: "route",
-              type: "line",
-              source: "Point_Source",
-              layout: {
-                "line-join": "round",
-                "line-cap": "round"
-              },
-              paint: {
-                //  "line-color": "#3887be",#000000
-                "line-color": "#3887be",
-                "line-width": 5,
-                "line-opacity": 0.75
-              }
-            });
-        }
-
-        // add turn instructions here at the end
-        // get the sidebar and add the instructions
-        //这部分是设置导航栏的详细信息
-        that.instructionsData = data;
+        setTimeout(() => this.$refs.timeline.initialData(), 100);
+      } else {
+        this.$message({
+          message: "位置和文本不可为空",
+          type: "warning"
+        });
       }
-
-
-      //构造数组
-      this.pointArray.unshift(this.start); //将start放入数组头部
-      this.pointArray.push(this.end); //将end放入数组尾部
-
-      // Init API connector
-      var r = new RouteXL_API_Connector();
-
+    },
+    shows_xy() {
+      this.visible_xy = !this.visible_xy;
+      this.$store.commit("set_xy_fb", this.visible_xy);
+      if (this.visible_xy === false) {
+        this.xy_content = "发布寻友";
+      } else {
+        this.xy_content = "取消发布";
+      }
+    },
+    shows() {
+      this.visible = !this.visible;
+      this.$store.commit("set_yb_fb", this.visible);
+      if (this.visible === false) {
+        this.yb_content = "发布游博";
+      } else {
+        this.yb_content = "取消发布";
+      }
+    },
+    deleteRow(index, rows) {
+      this.$store.commit("remove_xy_jingdian", index);
+    },
+    readit(index) {
+      console.log(1);
+      console.log(this.send_messages);
       let that = this;
-
-      // Get the tour
-      r.tour(
-        this.pointArray,
-        async function(result) {
-          // Success注意！返回的result是一个string
-          //console.log( typeof result ); typeof用于判断数据类型   注意！返回的result是一个string
-
-          let routeResult = JSON.parse(result); //将result转为Json对象方便使用
-          let pointStr = ""; //这个是构建点的坐标字符串url
-
-          //console.log("API函数内的：")
-          // let routeOrder = ''
-
-          for (let j = 0; j < that.pointArray.length; j++) {
-            if (j == 0) {
-              that.routeOrder = routeResult.route[j].name;
-            } else {
-              that.routeOrder =
-                that.routeOrder + "→" + routeResult.route[j].name;
-            }
-
-            for (let k = 0; k < that.pointArray.length; k++) {
-              if (routeResult.route[j].name == that.pointArray[k].name) {
-                //console.log(routeResult.route[j].name)
-                //console.log(pointArray[k].lat)
-                if (that.pointArray[k].name == that.end.name) {
-                  //如果是终点，那么在pointStr后不用再加  ;   号
-                  pointStr =
-                    pointStr +
-                    `${that.pointArray[k].lat},${that.pointArray[k].lng}`;
-                } else {
-                  pointStr =
-                    pointStr +
-                    `${that.pointArray[k].lat},${that.pointArray[k].lng};`;
-                }
+      that.send_messages;
+      if (that.get_messages[index].xyhf_is_read === 1) {
+        let url = `http://121.5.235.15/api/v2/zhouyou/_table/xunyou_huifu/${that.get_messages[index].xyhf_id}`;
+        axios
+          .put(
+            url,
+            {
+              xyhf_is_read: 0
+            },
+            {
+              params: {
+                api_key:
+                  "956eed8e98667eca2722be6afc37e123212466565cab5df2f7e653d206f3e3c0"
               }
             }
-          }
-
-          console.log(that.routeOrder);
-
-          await getRoute(pointStr, that.favormap); //pointStr是最后得到的坐标顺序，画线
-
-          /************这部分是根据路径API查询后得到的导航信息 */
-          const instructions = document.getElementById("instructions");
-          const steps = that.instructionsData.legs[0].steps;
-          let tripInstructions = "";
-
-          instructions.innerHTML = `<p><strong>Trip duration: ${Math.floor(
-            that.instructionsData.duration / 60 //计算路程总时间
-          )} min 🚗 </strong></p><ol>${that.routeOrder}</ol>`; //routeOrder是景点路径的顺序
-        },
-        function(error) {
-          // Error
-          console.log(error);
-        }
-      );
-
-      // this.pointArray = [];
-      // this.routeOrder ="";
-      this.getMark();//打标记   
-    }, 
-    //获取点击景点的信息，将信息存入数组pointArray
-    getAttractionData(lngLat,name){
-
-      if(this.clikTimes==0){
-          this.clikTimes = 1;
-              this.start = {
-                name: `${name}`,
-                lat: `${lngLat[0]}`,
-                lng: `${lngLat[1]}`
-              };
-       console.log("起点")         
-      }else if(this.clikTimes==1){
-        this.clikTimes = 2;
-              this.end = {
-                name: `${name}`,
-                lat: `${lngLat[0]}`,
-                lng: `${lngLat[1]}`
-              };  
-      console.log("终点")   
-      }else{
-              this.pointArray[this.pointArray.length] = {
-                name: `${name}`,
-                lat: `${lngLat[0]}`,
-                lng: `${lngLat[1]}`
-              };
-        console.log("过程点") 
-        console.log(this.pointArray)
-        
+          )
+          .then(r => {
+            that.get_data_messages();
+          })
+          .catch(r => {});
       }
-
-
-      
-
-
-      
-    },
-    //打标记
-    getMark(){
-
-          for (let j = 0; j < this.pointArray.length; j++) {
-            console.log([this.pointArray[j].lat,this.pointArray[j].lng]);
-            const marker = new mapboxgl.Marker({
-              color: "#22c32e" //绿色
-            })
-              .setLngLat([this.pointArray[j].lat,this.pointArray[j].lng])
-              .addTo(this.favormap);
-
-             this.favoriteMarks.push(marker);//将Mark存入数组中便于清除
-
-          }      
-
-
-    },
-    //清除Marks和路径的函数
-    cleanMarks(){
-      
-      this.favoriteMarks.forEach(marker => marker.remove());//清除上一次的标记
-      this.clikTimes=0;  //路径规划后将点击次数清零
-      this.pointArray=[];//清空
-
-      //删除route图层
-      if (this.favormap.getLayer("route")) {
-        this.favormap.removeLayer("route"); //删除图层
-      }
-      if (this.favormap.getSource("Point_Source")) {
-        this.favormap.removeSource("Point_Source"); //删除图层的源
-      }
-
-    }  
-
-    },
-
-
-computed:{
-  userInfoCom(){
-    return{
-    "height": "12em",
-    "border": "6px solid #ffffff",
-    "border-radius": "24px",
-    // "background-color": "beige"
-    "background":`url('${this.backPic}')`,
-    "background-size":"cover",
-    "color":"white"
     }
+
+
   }
-}
 }
 </script>
 
-<style>
-@import url('https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css');
-/*.userInfo{*/
-/*    height: 12em;*/
-/*    background-color: beige;*/
+<style scoped>
+@import url("https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css");
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: all;
+}
 
-/*    border: 6px solid #ffffff;*/
-/*    border-radius: 24px;*/
+#flexbaby{
+  /*display: flex;*/
+  z-index: 2;
+}
+#leftall{
+  width: fit-content;
+  margin-left: 5%;
+}
+#rightall{
+  width: fit-content;
+  position: fixed;
+  top: 7%;
+  right: 0%;
+  height: 75%;
+}
+#rightDrag{
+  /*position: fixed;*/
+  /*cursor: pointer;*/
+  /*left: 75%;*/
+  height: 100%;
+  float: right;
+}
+#rightflex{
+  /*float: right;*/
+  /*position: fixed;*/
+  /*cursor: pointer;*/
+  /*backdrop-filter: blur(2px);*/
+  border-radius: 12px;
+  /*position: absolute;*/
+  /*z-index: 2;*/
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+
+  /*display: flex;*/
+  /*flex-direction: column-reverse;*/
+  /*flex-wrap: wrap;*/
+  /*align-content: stretch;*/
+  /*align-items: flex-start;*/
+  /*justify-content: flex-end;*/
+  background-color: rgba(255,255,255,0.4);
+  height: 100%;
+
+}
+#youyu{
+
+  height: 90%;
+
+}
+#myInfo{
+  width: fit-content;
+  margin: 24px 2px;
+  background-color: rgba(255,255,255,0.8);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+#favorAndtrace{
+  backdrop-filter: blur(5px);
+  float: right;
+  top: 5%;
+  background-color: (255,255,255,0.8);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  border-radius: 12px;
+  position: absolute;
+  /*top: 15%;*/
+  width: 100%;
+  left: 70%;
+  /*z-index: 2;*/
+}
+/*#favorAndtrace:hover{*/
+/*  background-color: rgba(255,255,255,0.8);*/
 /*}*/
-.username{
-    text-align:right;
-    font-size:30px;
-    margin: 24px;
-}
-.numDisplay{
-    font-size:28px;
-}
-.hideOver{
-    display: none;
-}
-.button:hover +.hideOver{
-    display: block;
-    font-size: 6px;
-    color: burlywood;
-}
-.intro{
-    text-align:right;
-    margin: 2px;
-}
-.button {
-	background-color:#ffffff;
-	border-radius:28px;
-	border:1px solid #0f1110;
-	display:inline-block;
-	cursor:pointer;
-	color:#000000;
-	font-family:Arial;
-	font-size:8px;
-    margin: 2px 2px;
-	padding:6px 6px;
-	text-decoration:none;
-	/* text-shadow:0px 1px 0px #2f6627; */
-}
-.button:hover {
-	background-color:#5cbf2a;
-}
-.button:active {
-	position:relative;
-	top:1px;
-}
-.favoritemaps{
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    color: white;
-    background-color: gray;
-    border: 6px solid #ffffff;
-    border-radius: 24px;
-}
-.tracemaps{
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    color: white;
-    background-color: gray;
-    border: 5px solid #ffffff;
-    border-radius: 24px;
-}
-p{
- font-family: 'Microsoft Yahei','Times New Roman', Times, serif;
- font-size: 26px;
- margin: 12px;
- text-align: right;
-
-
-}
-.traceDetailStyle{
-  font-size: 5px;
-  text-align: left;
-  margin: 0px 0px;
-}
-#tracemap{
-    width: inherit;
-    /* height: 400px; */
-    height: 44rem;
-}
-#favoritemap{
-  width: inherit;
-  /* height: 180px; */
-  height: 34rem;
-}
-.flex{
-  display: flex;
+.content{
+  width: 300px;
   height: 100%;
 }
-#oimiGod{
-  bottom: 10%;
-  background-color: beige;
-}
-/* .favorbox{
-  width: 40%;
-} */
-.leftbox{
-  width: 50%;
-}
-.tracebox{
-  width: 50%;
-}
-#instructions {
-  position: absolute;
-  margin: 0px;
-  width: 10%;
-  right: 0px;
-  top: 0px;
-  bottom: 60%;
-  padding: 0px;
-  background-color: #fff;
-  overflow-y: scroll;
-  font-family: sans-serif;
-  opacity: 0.7;
+
+/*我的消息弹窗调整*/
+/deep/ .el-dialog{
+  margin-top: 16vh !important;
 }
 
+#yb{
+  width: 100%;
+  backdrop-filter: blur(2px);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+#xy{
+  width: 100%;
+  height: 100%;
+}
+.favorite{
+  display: flex;
+  flex-wrap: wrap;
+}
+/*统一大小*/
+.xyclass{
+  height: 100%;
+}
+#yb{
+  height: 100%;
+}
+.timeline{
+  height: 100%;
+}
+
+#youyustart{
+
+}
+.favorButton{
+  border:1px solid black;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  margin: 12px 5px;
+}
+.traceButton{
+  border:1px solid black;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  margin: 12px 5px;
+}
+/deep/ .el-input__inner{
+  background-color: transparent;
+  background-image: none;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #606266;
+  display: inline-block;
+  font-size: 6px;
+  height: 20px;
+  line-height: 40px;
+  outline: 0;
+  padding: 0 15px;
+  -webkit-transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  width: fit-content;
+}
+.funcButton{
+  margin: 4px 12px;
+}
+#functionZone{
+color: #f3f3dd;
+
+}
+#headerFunctionZone{
+  width: 100%;
+  height: 40px;
+  /*background-color: transparent;*/
+  background-color: rgba(29,29,31,0.72);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  backdrop-filter: blur(5px);
+}
+.sendChoiceHidden{
+  display: none;
+}
+#sendPanel:hover .sendChoiceHidden{
+  display: block;
+  text-align: center;
+  width: 100%;
+  height: fit-content;
+
+  /*z-index: 4;*/
+}
+.sendButtonChoice{
+  width: fit-content;
+  background-color: #409EFF;
+  border-radius: 12px;
+  padding: 5px;
+}
+/deep/ .el-dialog{
+  width: fit-content;
+  min-width: 350px;
+  background-color: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+.messagePanel{
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+  text-align: left;
+  background-color: transparent;
+  margin: 16px 12px;
+  padding: 10px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+.sendButton{
+  text-align: center;
+  z-index: 4;
+}
+#sendPanel{
+  height: 10%;
+}
 </style>
