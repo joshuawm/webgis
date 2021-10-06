@@ -1,9 +1,11 @@
 <template>
   <div id="body-all">
+    <div id="theHeader">
     <el-row style="background-color: #545c64;height: 60px">
       <v-navMenu class="headers" />
       <v-h-func class="headers" @screen_download="download_screen"></v-h-func>
     </el-row>
+    </div>
     <div id="main" ref="screen">
       <v-zhouyou v-if="$store.state.main_show === '1'" />
       <v-analysis v-if="$store.state.main_show === '2'" />
@@ -73,16 +75,22 @@ export default {
   background-size: 100% 100%;
   margin-top: -8px;
   margin-left: -8px;
+  backdrop-filter: blur(4px);
 }
 
 .headers {
   display: inline-block;
-  height: 80px;
+  height: 60px;
   vertical-align: top;
 }
 #main {
   width: 100%;
   height: 100%;
-  
+  position: relative;
+
+}
+#theHeader{
+  width: 100%;
+  height: 60px;
 }
 </style>

@@ -5,7 +5,7 @@
       <div class="poiSelectPanel">
           <div class="poiSelectText text"><span>景点选择</span></div>
           <div class="poiSelectHidden">
-            <p class="choice" >类型选择</p>
+            <p class="choice" @click="gotod('1-1')">类型选择</p>
             <p class="choice" @click="gotod('1-2')">距离选择</p>
             <p class="choice" @click="gotod('1-3-1')">拉框选择</p>
           </div>
@@ -27,15 +27,17 @@
       </div>
 
       </div>
-
+    <div id="loading" ref="loading">
+      <span class="el-icon-loading"></span>
+    </div>
     <div class="custome">
           <similar v-if="index === '3'"></similar>
           <traffic v-if="index === '2-1-3'"></traffic>
           <distanceanlysis v-if="index === '2-1-0'"></distanceanlysis>
           <select-by-distance v-if="index === '1-2'"></select-by-distance>
-          <select-by-type v-if="index='1-1'"></select-by-type>
+          <select-by-type v-if="index==='1-1'"></select-by-type>
           <kuang v-if="index === '1-3-1'"></kuang>
-<!--          <price-score v-if="theIndex === '2-1-1'"></price-score>-->
+          <price-score v-if="index === '2-1-1'"></price-score>
           <listtoanalysis v-if="index ==='2-1-4'"></listtoanalysis>
   </div>
 
@@ -51,7 +53,7 @@ import SelectByDistance from "./analysis_Scenic/distanceSelect.vue";
 import SelectByType from "./analysis_Scenic/typeSelect.vue";
 import kuang from "./analysis_Scenic/kuang.vue";
 import distanceanlysis from "./analysis_Scenic/distance_anlysis"
-// import PriceScore from "./scenicAnalysis/PriceScore.vue"
+import PriceScore from "./son_components/PriceScore"
 import listtoanalysis from "./analysis_Scenic/listtoanalysis"
 
 
@@ -66,7 +68,7 @@ export default defineComponent({
     SelectByType,
     kuang,
     distanceanlysis,
-    // PriceScore,
+    PriceScore,
     listtoanalysis
   },
   data() {
@@ -80,7 +82,14 @@ export default defineComponent({
     };
   },
   mounted() {
-
+  this.$EventBus.$on("loading",(status)=>{
+    //安全锁 防止关闭不了
+    if (status==="loading"){
+      setTimeout(()=>{
+        this.$refs.loading.style.display="none"
+      },10000)
+    }
+  })
   },
   methods: {
 
@@ -119,20 +128,26 @@ export default defineComponent({
   margin-left: 3px;
   font-size: inherit;
   text-align: center;
+  color: #f5f5f7;
 
 }
 .crystalPanel{
   display: flex;
-  margin: 6px 34px;
-  width: fit-content;
-  background-color: transparent;
   /*height: 60px;*/
+  width: 100%;
+  height: 40px;
+  /*background-color: transparent;*/
+  background-color: rgba(29,29,31,0.72);
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  backdrop-filter: blur(5px);
 }
 
 #crystalMenu{
   position: absolute;
-  top: 5%;
-  left: 5%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  right:0;
   z-index: 2;
 }
 .trafficPanel{
@@ -148,54 +163,66 @@ height: fit-content;
   height: fit-content;
 }
 .analysisText{
-  border-right:1px solid black;
+  /*border-right:1px solid black;*/
+  color: #f5f5f7;
+  font-weight: bold;
 }
 .poiSelectText{
-  border-right:1px solid black;
+  /*border-right:1px solid black;*/
+  color: #f5f5f7;
+  font-weight: bold;
 }
 .trafficText{
-
+  color: #f5f5f7;
+  font-weight: bold;
 }
 .text{
   text-align: center;
-
+  cursor:default;
   height: fit-content;
   padding: 10px;
 }
 .poiSelectPanel:hover .poiSelectHidden{
   display: block;
   height: fit-content;
+  cursor: pointer;
   /*background-color: transparent;*/
-  background-color: rgba(255,255,255,0.6);
+  background-color: rgba(29,29,31,0.72);
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   border-radius: 12px;
   backdrop-filter: blur(5px);
 }
 .analysisPanel:hover .analysisHidden{
   display: block;
+  cursor: pointer;
   height: fit-content;
   /*background-color: transparent;*/
-  background-color: rgba(255,255,255,0.6);
+  background-color: rgba(29,29,31,0.72);
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   border-radius: 8px;
   backdrop-filter: blur(5px);
 }
 .poiSelectPanel:hover .poiSelectText{
 
-  background-color: rgba(255,255,255,0.2);
+  background-color: rgba(29,29,31,0.1);
+  color: white;
   backdrop-filter: blur(5px);
 }
 .analysisPanel:hover .analysisText{
-  background-color: rgba(255,255,255,0.2);
+  background-color: rgba(29,29,31,0.1);
+  color: white;
   backdrop-filter: blur(5px);
+
 }
 .trafficPanel:hover .trafficText{
-  background-color: rgba(255,255,255,0.2);
+  background-color: rgba(29,29,31,0.1);
+  color: white;
   backdrop-filter: blur(5px);
+  cursor: pointer;
 }
 .choice:hover{
   background-clip: border-box;
-  background-color: rgba(255,255,255,0.2);
+  background-color: rgba(29,29,31,0.72);
   backdrop-filter: blur(2px);
   border-radius: 5px;
 }
@@ -207,15 +234,17 @@ height: fit-content;
 }
 
 .crystalPanel{
-  height: 40px;
-  /*background-color: transparent;*/
-  background-color: rgba(255,255,255,0.6);
-  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
-  border-radius: 12px;
-  backdrop-filter: blur(5px);
+
 }
 
+#loading{
+  position: absolute;
+  left: 50%;
+  transform: scale(2);
+  top: 10%;
+  display: none;
 
+}
 
 </style>
 

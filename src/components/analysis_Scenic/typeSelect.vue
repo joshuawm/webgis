@@ -213,23 +213,30 @@ export default {
   background-clip: border-box;
   border-radius: 12px;
   backdrop-filter: blur(3px);
-  background-color: rgba(255,255,255,0.8);
+  color: #f5f5f7;
+  background-color: rgba(29,29,31,0.72);
   margin: 3px 3px;
-  padding: 3px;
+  padding: 8px;
+  cursor: pointer;
+}
+.button:hover{
+  color:white;
 }
 button{
   position: relative;
   background-clip: border-box;
   border-radius: 12px;
   backdrop-filter: blur(3px);
-  background-color: rgba(255,255,255,0.8);
+  color: #f5f5f7;
+  background-color: rgba(29,29,31,0.72);
   margin: 3px 3px;
-  padding: 6px;
+  padding: 8px;
   border: none;
   float: right;
   font-weight: bold;
   font-size: inherit;
   font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;
+  cursor: pointer;
 }
 #buttonChoice{
   display: flex;
@@ -238,7 +245,7 @@ button{
 #extended{
   width: 35%;
   position: absolute;
-  top: 10%;
+  top: 14%;
   right: 3%;
   z-index: 2;
 }

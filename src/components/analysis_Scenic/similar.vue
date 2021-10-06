@@ -1,7 +1,8 @@
 <template>
   <div>
     <div id="map_show"></div>
-    <pre id="features"></pre>
+    <div id="similarShow"><pre id="features"></pre></div>
+
   </div>
 </template>
 
@@ -183,12 +184,12 @@ export default {
             `<li>${scenictypelist[index].attraction_name}<button id="${index}" style="float:right;-webkit-border-radius: 28px; -moz-border-radius: 28px; border-radius: 28px; color: black;background-color: white; border: none;";>Go</button></li><br/>`;
         }
         document.getElementById("features").innerHTML =
-          "<br><br>这里是" +
+          "<div id='similarDisplay'></div><br><br>这里是" +
           `<b>${features[0].properties.name}</b>` +
-          "<br><br><hr>推荐与其相似的景点：" +
+          "<br><hr>推荐与其相似的景点：" +
           `<ol>
             ${listring}
-            </ol>`;
+            </ol></div>`;
           for(let num =0;num<10;num++){
             document.getElementById(num.toString()).addEventListener('click',  ()=> {
               map.flyTo({
@@ -242,12 +243,23 @@ export default {
 
 #features {
   position: absolute;
-  top: 0;
   right: 0;
-  bottom: 0;
   width: 300px;
-  height: 570px;
-  overflow: auto;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+  top: 8%;
+  border-radius: 20px;
+  box-shadow: 4px 12px 40px 6px rgb(0 0 0 / 9%);
+  border: none;
+  height: 70%;
+  overflow: scroll;
+  scrollbar-width: none;
+  padding-left: 20px;
+  padding-right: 10px;
+
+}
+
+pre::-webkit-scrollbar {
+  display: none; /* Chrome Safari */
 }
 </style>

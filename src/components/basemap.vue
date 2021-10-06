@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="god">
     <div id="map"></div>
     <div class="basemapSwitch">
       <div class="switchPanel">
@@ -500,11 +500,18 @@ export default {
   border-radius: 14px;
 
 }
+#god{
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
 #map {
   position: absolute;
-  top: 60px;
+  top: 0;
   bottom: 0;
   width: 100%;
+  height: 100%;
+  pointer-events: all;
 }
 .pop-up {
   color: #f3f3dd;
@@ -519,8 +526,10 @@ p {
 }
 .basemapSwitch {
   position: absolute;
-  bottom: 5%;
+  bottom: 15%;
   left: 3%;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .switchPanel {
   display: none;

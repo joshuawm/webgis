@@ -146,7 +146,7 @@ export default {
       } else {
         sentence = "该景点人数可能较多，请谨慎前往";
       }
-      new mapboxgl.Popup()
+      new mapboxgl.Popup({className:"popClass"})
         .setLngLat([e.lngLat.lng, e.lngLat.lat])
         .setHTML(
           `<b>${e.features[0].properties.name}</b>` +
@@ -182,5 +182,18 @@ export default {
   top: 0;
   bottom: 0;
   width: 100%;
+}
+/deep/ .popClass{
+  border-radius: 12px;
+  backdrop-filter: blur(3px);
+  background-color: rgba(255,255,255,0.72);
+}
+/deep/ .mapboxgl-popup-content {
+  position: relative;
+  background: transparent;
+  border-radius: 3px;
+  /* box-shadow: 0 1px 2px rgb(0 0 0 / 10%); */
+  padding: 10px 10px 15px;
+  pointer-events: auto;
 }
 </style>

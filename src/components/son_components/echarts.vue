@@ -210,7 +210,9 @@ export default {
         series: []
       },
       clickedColor:"#add8e6",
-      unclickColor:"transparent"
+      unclickColor:"transparent",
+      clickedText:"#f5f5f7",
+      uncliedText:"#000000"
     }
   },
   components:{
@@ -548,6 +550,7 @@ export default {
     whatsmystyle(){
           if(this.op.dataType==="Attractions"){
             this.$refs.jingdian.style.backgroundColor=this.clickedColor
+            this.$refs.jingdian.style.backdropFilter="blur(5px)"
             this.$refs.meishi.style.backgroundColor=this.unclickColor
           }else if(this.op.dataType==="Caterings"){
             this.$refs.meishi.style.backgroundColor=this.clickedColor
@@ -587,7 +590,7 @@ p{
 #scorePrice{
   width: 600px;
   /*min-height: 50%;*/
-  height: 400px;
+  height: 300px;
   /*background-color: rgba(255,255,255,0.4);*/
   margin: 12px 9px;
   background: rgba(255,255,255,0.8);

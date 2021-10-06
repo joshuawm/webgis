@@ -1,17 +1,16 @@
 <template>
   <div id="god">
     <div id="map"></div>
-    <div id="loading" ref="loading">
-      <span class="el-icon-loading"></span>
-    </div>
+
     <div id="extended">
       <button id="appendtolist" @click="appendclick">添加至分析列表</button>
       <div id="buttonChoice">
         <div class="button" v-for="dis in distance" :key="dis.name" @click="bufferradius=dis.value">
-          <span>{{button}}</span>
+          <span>{{dis.name}}</span>
         </div>
         <div class="button">
-          <input v-model="customeDistance" @keydown.enter="Number(customeDistance)===(NaN|0)?alert('input valid value'):bufferradius=Number(ustomeDistance)"></input><label>自定义</label>
+          <label>自定义</label>
+          <input v-model="customeDistance" @keydown.enter="Number(customeDistance)===(NaN|0)?alert('input valid value'):bufferradius=Number(ustomeDistance)"></input>
           <span class="el-icon-check" @click="Number(customeDistance)===(NaN|0)?alert('input valid value'):bufferradius=Number(ustomeDistance)"></span>
         </div>
       </div>
@@ -262,6 +261,8 @@ export default {
       console.log("distance")
       console.log(this.ptswithcirdata.features)
     }
+  },
+  watch:{
   }
 };
 </script>
@@ -273,8 +274,8 @@ export default {
   top: 0;
   bottom: 0;
   width: 100%;
-  border-radius: 100px;
-  border: none;
+  height: 100%;
+  pointer-events: all;
 }
 /*#appendtolist {*/
 /*  position: absolute;*/
@@ -288,23 +289,26 @@ export default {
   background-clip: border-box;
   border-radius: 12px;
   backdrop-filter: blur(3px);
-  background-color: rgba(255,255,255,0.8);
+  background-color: rgba(29,29,31,0.72);
+  color: #f5f5f7;
+  cursor: pointer;
   margin: 3px 3px;
-  padding: 3px;
+  padding: 8px;
 }
 button{
   position: relative;
   background-clip: border-box;
   border-radius: 12px;
   backdrop-filter: blur(3px);
-  background-color: rgba(255,255,255,0.8);
-  margin: 3px 3px;
-  padding: 6px;
+  background-color: rgba(29,29,31,0.72);
+  color: #f5f5f7;
+  margin: 3px 5px;
+  padding: 8px;
   border: none;
   float: right;
   font-weight: bold;
   font-size: inherit;
-  font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;
+  font-family: serif;
 }
 #buttonChoice{
   display: flex;
@@ -317,12 +321,11 @@ button{
   right: 3%;
   z-index: 2;
 }
-#loading{
-  position: absolute;
-  left: 50%;
-  transform: scale(2);
-  top: 10%;
-  display: none;
 
+input{
+  width:50px;
+  border-radius: 12px;
+  background-color: rgba(255,255,255,0.2);
+  border: none;
 }
 </style>

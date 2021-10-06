@@ -1,26 +1,28 @@
 <template>
   <div>
     <div id="map"></div>
-    <div class="basemapSwitch">
-      <div class="switchPanel">
-        <div>
-          <img src="" alt="默认" @click="mapChange('default')" />
-          <span>默认</span>
-        </div>
-        <div>
-          <img src="" alt="bubble" @click="mapChange('bubble')" />
-          <span>bubble</span>
-        </div>
-        <div>
-          <img src="" alt="卫星" @click="mapChange('satellite')" />
-          <span>卫星</span>
-        </div>
-      </div>
-      <div>底图切换</div>
-    </div>
     <div class="charts" ref="kongtiao" @mousedown="mouseDownHandleelse($event)" @mouseup="mouseUpHandleelse($event)">
       <echarts></echarts>
     </div>
+<!--    底图切换已经屏蔽-->
+<!--    <div class="basemapSwitch">-->
+<!--      <div class="switchPanel">-->
+<!--        <div>-->
+<!--          <img src="" alt="默认" @click="mapChange('default')" />-->
+<!--          <span>默认</span>-->
+<!--        </div>-->
+<!--        <div>-->
+<!--          <img src="" alt="bubble" @click="mapChange('bubble')" />-->
+<!--          <span>bubble</span>-->
+<!--        </div>-->
+<!--        <div>-->
+<!--          <img src="" alt="卫星" @click="mapChange('satellite')" />-->
+<!--          <span>卫星</span>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <div>底图切换</div>-->
+<!--    </div>-->
+
   </div>
 </template>
 
@@ -226,7 +228,7 @@ export default {
   width: 100%;
 }
 .charts {
-
+  height: fit-content;
   border-radius: 30px;
   border: 1px solid white;
   background-color: rgba(255,255,255,0.6);
@@ -234,8 +236,8 @@ export default {
   position: fixed;
   cursor: pointer;
   /*right: 5%;*/
-  top: 15%;
-  left:50%;
+  top: 18%;
+  left: 50%;
   /*width: 35.6%;*/
   /*height: 50%;*/
   box-shadow: rgba(0, 0, 0, 0.24) 0px 6px 12px;

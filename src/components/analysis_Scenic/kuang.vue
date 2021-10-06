@@ -1,11 +1,11 @@
 <template>
-  <div id="map">
-    <div id="map_show">
-    <el-row>
-      <el-button id="appendtolist" type="primary" plain  @click="appendclick">添加至分析列表</el-button>
-    </el-row>
+  <div>
+    <div id="map"></div>
+    <div id="extended">
+      <button id="appendtolist" @click="appendclick">添加至分析列表</button>
     </div>
   </div>
+
 </template>
 
 <script>
@@ -32,7 +32,7 @@ export default {
     mapboxgl.accessToken =
       "pk.eyJ1Ijoiam9zaHVhbXdvbmciLCJhIjoiY2tzaXRlOXcyMHVhNzJ2bnN4aG11NW10aiJ9.RdgXiHX8GNMNWTr2X92ruQ";
     const map = new mapboxgl.Map({
-      container: "map_show",
+      container: "map",
       style: "mapbox://styles/joshuamwong/ckte9azm523g217juhpczqo5q",
       center: this.$store.state.mapCenter,
       zoom: this.$store.state.mapZoom
@@ -238,7 +238,30 @@ export default {
 
 <style scoped>
 @import url("https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css");
-#map_show {
+button{
+  position: relative;
+  background-clip: border-box;
+  border-radius: 12px;
+  backdrop-filter: blur(3px);
+  color: #f5f5f7;
+  background-color: rgba(29,29,31,0.72);
+  margin: 3px 3px;
+  padding: 8px;
+  border: none;
+  float: right;
+  font-weight: bold;
+  font-size: inherit;
+  font-family: 'Microsoft Yahei', 'Times New Roman', Times, serif;
+  cursor: pointer;
+}
+#extended{
+  width: 35%;
+  position: absolute;
+  top: 14%;
+  right: 3%;
+  z-index: 2;
+}
+#map {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -246,12 +269,37 @@ export default {
   height: 100%;
   pointer-events: all;
 }
-#appendtolist {
+
+/*controller叛变计划*/
+/deep/ .mapboxgl-control-container {
   position: absolute;
-  z-index: 1;
-  top: 10px;
-  right: 10px;
-  border-radius: 3px;
-  width: 150px;
+  right: 13.1%;
 }
+/deep/ .mapboxgl-ctrl-group:not(:empty) {
+  /* box-shadow: 0 0 0 2px rgb(0 0 0 / 10%); */
+  display: flex;
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0%);
+
+}
+/deep/ .mapboxgl-ctrl-top-left .mapboxgl-ctrl {
+  margin: 0px;
+  float: left;
+}
+/deep/ .mapboxgl-ctrl-group button {
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  display: block;
+  padding: 0;
+  outline: none;
+  border: 0;
+  box-sizing: border-box;
+  background-color: transparent;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+}
+
+
 </style>
