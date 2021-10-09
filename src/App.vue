@@ -12,7 +12,6 @@ import Register from "./view/register";
 import home from "./view/home";
 
 
-
 export default {
   name: 'App',
   components:{

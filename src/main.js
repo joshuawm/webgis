@@ -17,20 +17,20 @@ Vue.config.productionTip = false;
 Vue.component("split-pane", splitPane);
 Vue.prototype.$EventBus = new Vue();
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requireAuth) {
-    if (store.state.user_id) {
-      next(); // 已登录
-    } else {
-      next({
-        path: "/",
-        query: { redirect: to.fullPath }
-      });
-    }
-  } else {
-    next();
-  }
-});
+// router.beforeEach((to, from, next) => {
+//   if (to.meta.requireAuth) {
+//     if (store.state.user_id) {
+//       next(); // 已登录
+//     } else {
+//       next({
+//         path: "/",
+//         query: { redirect: to.fullPath }
+//       });
+//     }
+//   } else {
+//     next();
+//   }
+// });
 
 /* eslint-disable no-new */
 new Vue({

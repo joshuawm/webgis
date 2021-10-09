@@ -31,9 +31,10 @@
           maxlength="30"
         ></el-input>
       </el-form>
+      <div>
       <el-button type="primary" plain id="register" @click="register_button">
         注 册
-      </el-button>
+      </el-button></div>
       <el-button type="text" @click="routes01" id="login" icon="el-icon-back"
         >返回登录</el-button
       >
@@ -148,8 +149,11 @@ export default {
   margin: -150px 0 0 -200px;
   width: 400px;
   height: 320px;
-  border: 2px solid #409eff;
+  /* border: 2px solid #409eff; */
   padding: 40px;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 }
 .el-input {
   margin-top: 15px;
@@ -162,9 +166,10 @@ export default {
   margin-right: 20px;
 }
 #register {
-  margin-top: 7px;
-  width: 400px;
-  margin-bottom: 5px;
+  width: 80px;
+  margin-top: 25px;
+  margin-left: 40%;
+  border-radius: 35px;
 }
 #body-all {
   width: 100%;
@@ -174,5 +179,41 @@ export default {
   margin-top: -8px;
   margin-left: -8px;
   background: url("../assets/bg.jpg");
+}
+/deep/ .el-input__inner{
+  -webkit-appearance: none;
+    background-color: rgba(255,255,255,0.3);
+    background-image: none;
+    border-radius: 30px;
+    border: 0px solid transparent;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: black;
+    display: inline-block;
+    font-size: inherit;
+    height: 40px;
+    line-height: 40px;
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+    transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+    width: 100%;
+}
+/deep/ .el-button--text {
+    color: #006affa2;
+    background: 0 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+/deep/.el-button--primary.is-plain:focus, .el-button--primary.is-plain:hover {
+    background: #40a0ff2a;
+    backdrop-filter: blur(2px);
+    border-color: #40a0ff2a;
+    color: #FFF;
+}
+/deep/.el-button--primary.is-plain {
+    color: #00a7f5;
+    background: rgba(245,255,255,0.3);
+    border-color: transparent;
 }
 </style>

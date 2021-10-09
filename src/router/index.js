@@ -4,15 +4,13 @@ import VueRouter from "vue-router";
 import login from "../view/login";
 import register from "../view/register";
 import home from "../view/home";
-import wode from "../components/wode"
-import jingdianfenxi from "../components/jingdianfenxi";
 Vue.use(VueRouter);
 
 export default new VueRouter({
   routes: [
     {
       path: "",
-      component: login
+      component: home
     },
     {
       //路由路径
@@ -29,19 +27,10 @@ export default new VueRouter({
     {
       path: "/home",
       component: home,
-      meta: {
-        requireAuth: true
-      }
-    },
-    {
-      path: "/wode",
-      component: wode
-    },
-    {
-      path:"/test",
-      component:jingdianfenxi
+      // meta: {
+      //   requireAuth: true
+      // }
     }
-
   ],
   mode: "history"
 });

@@ -38,7 +38,8 @@ export default new Vuex.Store({
     xystates: false,
     xyjingdianID: [],
     xyjingdian: [],
-    listToAnalysis:[]
+    listToAnalysis:[],
+    previewURL:null
   },
   mutations: {
     read_user_info(state, r_data) {
@@ -54,6 +55,11 @@ export default new Vuex.Store({
       sessionStorage.setItem("email", r_data.user_email);
     },
     logout(state) {
+      state.user_id = 0;
+      state.username = "";
+      state.password = "";
+      state.phone_number = "";
+      state.email = "";
       sessionStorage.removeItem("user_id");
       sessionStorage.removeItem("username");
       sessionStorage.removeItem("password");
@@ -119,6 +125,9 @@ export default new Vuex.Store({
         state.listToAnalysis = Array.from(new Set(state.listToAnalysis))
       }
       console.log(state.listToAnalysis)
+    },
+    previewImgM(state,value){
+      state.previewURL=value
     }
   }
 });
